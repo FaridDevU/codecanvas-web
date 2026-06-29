@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API Console — CodeCanvas AI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+  <style>
+    :root{
+      --paper:#f6f6f3; --white:#fff; --ink:#0c0d10; --ink-2:#3b3f47;
+      --muted:#8b909a; --line:#e7e7e2; --accent:#2f6bff; --night:#0d0f14;
+      --sans:"Switzer","Segoe UI",system-ui,sans-serif;
+      --grotesk:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+      --mono:"Space Mono","Consolas",monospace;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--paper);color:var(--ink-2);font-family:var(--sans)}
+    a{color:var(--accent);text-decoration:none}
+    .top{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:14px 4vw;background:rgba(246,246,243,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    .brand{font-family:Georgia,serif;font-style:italic;font-size:1.45rem;color:var(--ink)}
+    .brand b{font-style:normal}
+    .crumb{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px}
+    .left{display:flex;align-items:center;gap:14px}
+    .right{display:flex;gap:10px}
+    .btn{font-weight:600;font-size:.85rem;border-radius:999px;padding:.5rem 1rem;border:1px solid var(--line);background:var(--white);color:var(--ink)}
+    .btn:hover{border-color:var(--ink)}
+    .btn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+    .intro{max-width:980px;margin:26px auto 0;padding:0 4vw}
+    .intro h1{font-family:var(--grotesk);font-weight:700;letter-spacing:-.03em;color:var(--ink);font-size:clamp(1.8rem,4vw,2.6rem);margin:0 0 8px}
+    .intro p{max-width:72ch;line-height:1.6}
+    .note{background:#eef2ff;border:1px solid #d9def7;border-radius:14px;padding:14px 18px;max-width:72ch;margin-top:14px;font-size:.95rem;line-height:1.55}
+    #swagger{max-width:1080px;margin:10px auto 100px;padding:0 2vw}
+    /* harmonize swagger-ui with the CodeCanvas palette */
+    .swagger-ui .topbar{display:none}
+    .swagger-ui, .swagger-ui .info .title, .swagger-ui .opblock-tag{font-family:var(--grotesk)}
+    .swagger-ui .info .title{color:var(--ink)}
+    .swagger-ui .scheme-container{background:transparent;box-shadow:none;padding:10px 0}
+    .swagger-ui .btn.authorize, .swagger-ui .btn.execute{background:var(--accent);border-color:var(--accent)}
+    .swagger-ui .opblock.opblock-post{background:rgba(47,107,255,.04);border-color:#cdd8ff}
+    .swagger-ui .opblock.opblock-post .opblock-summary-method{background:var(--accent)}
+    .errbox{max-width:980px;margin:20px auto;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--white);font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="left">
+      <a class="brand" href="/">CodeCanvas <b>AI</b></a>
+      <span class="crumb">API Console</span>
+    </div>
+    <div class="right">
+      <a class="btn" href="docs.html?p=09-api-reference">Prose reference</a>
+      <a class="btn btn-dark" href="docs.html">Back to docs</a>
+    </div>
+  </header>
+
+  <section class="intro">
+    <h1>Internal API Console</h1>
+    <p>An interactive, Swagger-style catalog of CodeCanvas's internal API surface.</p>
+    <div class="note">
+      <b>Read this first.</b> CodeCanvas is a local desktop app, not a web service. The operations
+      below are <b>internal</b> — IPC channels, dependency-injection services, commands, the Claude
+      agent-host protocol, the penpal design bridge, HTML write-back, and the Rust CLI's RPC. They are
+      modeled as OpenAPI purely so you can browse them with a familiar interface. The host, paths, and
+      the "Try it out" button are illustrative; there is no server to call.
+    </div>
+  </section>
+
+  <div id="swagger"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.addEventListener('load', () => {
+      try {
+        window.ui = SwaggerUIBundle({
+          url: 'docs/api/openapi.yaml',
+          dom_id: '#swagger',
+          deepLinking: true,
+          docExpansion: 'list',
+          defaultModelsExpandDepth: 1,
+          tryItOutEnabled: false,
+          supportedSubmitMethods: [],
+          presets: [SwaggerUIBundle.presets.apis],
+          onComplete: () => {},
+          onFailure: () => showError()
+        });
+      } catch (e) { showError(e); }
+      function showError(e){
+        document.getElementById('swagger').innerHTML =
+          '<div class="errbox">Could not load <code>docs/api/openapi.yaml</code>'+
+          (e?': '+e.message:'')+'.<br>Make sure the dev server is running and the spec file exists.</div>';
+      }
+      // if the spec 404s, swagger-ui shows its own message; add a fallback check
+      fetch('docs/api/openapi.yaml',{cache:'no-cache'}).then(r=>{ if(!r.ok) showError(new Error('HTTP '+r.status)); });
+    });
+  </script>
+</body>
+</html>

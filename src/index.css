@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/* CodeCanvas AI — light editorial system (Lusion-inspired white sections).
+   Big bold grotesque headlines, generous whitespace, soft rounded media. */
+@theme {
+  --color-paper: #f6f6f3;
+  --color-white: #ffffff;
+  /* Off-white panel: sits between paper and pure white so the seam against
+     paper sections (HowItWorks/FAQ) is soft, not a hard white block. */
+  --color-panel: #fbfbf9;
+  --color-ink: #0c0d10;
+  --color-ink-2: #3b3f47;
+  --color-muted: #8b909a;
+  --color-line: #e7e7e2;
+  --color-accent: #2f6bff;
+  --color-accent-hi: #1f56e6;
+  --color-night: #0d0f14;
+
+  --font-display: "General Sans", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Switzer", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Space Mono", "Consolas", monospace;
+  --font-grotesk: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-script: "Instrument Serif", Georgia, serif;
+  --font-forum: "Forum", Georgia, serif;
+
+  --radius-card: 22px;
+  --radius-lg: 30px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink-2);
+  font-family: var(--font-sans);
+  /* clip (not hidden) avoids making body a scroll container, which would break
+     ScrollTrigger's position:fixed pinning. Still kills horizontal overflow. */
+  overflow-x: clip;
+}
+
+/* ---- Display type: big, bold, tight ----
+   In @layer components so Tailwind UTILITIES (the later layer) win over the
+   default ink colour — e.g. `text-white` on the dark CTA panel. Light sections
+   add no colour utility, so they still resolve to ink. */
+@layer components {
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.96;
+    color: var(--color-ink);
+  }
+  .display-2 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.03em; line-height: 1.0; color: var(--color-ink); }
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ---- Soft light card ---- */
+.card {
+  background: var(--color-white);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(12,13,16,.04), 0 18px 40px -24px rgba(12,13,16,.18);
+}
+.media-round { border-radius: var(--radius-card); overflow: hidden; }
+
+/* ---- Buttons (pills) ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  font-family: var(--font-sans); font-weight: 600; font-size: .95rem; line-height: 1;
+  padding: .85rem 1.4rem; border-radius: 999px; cursor: pointer;
+  border: 1px solid transparent; text-decoration: none;
+  transition: transform .25s cubic-bezier(.2,.8,.2,1), background-color .2s, color .2s, border-color .2s, box-shadow .2s;
+}
+.btn-dark { background: var(--color-ink); color: #fff; }
+.btn-dark:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgba(12,13,16,.5); }
+.btn-light { background: var(--color-white); color: var(--color-ink); border-color: var(--color-line); }
+.btn-light:hover { border-color: var(--color-ink); transform: translateY(-2px); }
+.btn-accent { background: var(--color-accent); color: #fff; }
+.btn-accent:hover { background: var(--color-accent-hi); transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgba(47,107,255,.6); }
+
+/* pill chip */
+.chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  border-radius: 999px; border: 1px solid var(--color-line);
+  background: var(--color-white); padding: .5rem .9rem;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em;
+  color: var(--color-ink-2);
+}
+
+/* nav dim-on-hover */
+.nav-links a { transition: opacity .2s, color .2s; }
+.nav-links:hover a { opacity: .45; }
+.nav-links a:hover { opacity: 1; }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+
+/* Apple-Intelligence-style "AI": a bright gradient that flows + shifts hue. */
+@keyframes ai-shimmer { to { background-position: 200% 50%; } }
+.ai-gradient {
+  background-image: linear-gradient(115deg,
+    #8fb0ff, #2f4dff, #5566ff, #2f4dff, #8fb0ff);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: ai-shimmer 4s linear infinite;
+}
+
+/* Buttons that, on hover, smoothly fade to the animated AI gradient with NO
+   movement (overrides the default pill lift/shadow). */
+.btn-ai { position: relative; isolation: isolate; overflow: hidden; }
+.btn-ai::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1;
+  background-image: linear-gradient(115deg,
+    #8fb0ff, #2f4dff, #5566ff, #2f4dff, #8fb0ff);
+  background-size: 200% 100%;
+  opacity: 0; transition: opacity .35s ease;
+}
+.btn-ai:hover { transform: none !important; box-shadow: none !important; color: #fff; border-color: transparent; background-color: transparent; }
+.btn-ai:hover::before { opacity: 1; animation: ai-shimmer 4s linear infinite; }
+
+/* Waveform icon: the line slithers sideways like a little snake. */
+@keyframes snake { to { transform: translateX(-8px); } }
+.snake-wave { animation: snake .9s linear infinite; }
+
+/* AI gradient as a SOLID fill (not text-clipped) — fills the play button bottom→top. */
+.ai-fill {
+  background-image: linear-gradient(115deg, #8fb0ff, #2f4dff, #5566ff, #2f4dff, #8fb0ff);
+  background-size: 200% 100%;
+  animation: ai-shimmer 4s linear infinite;
+}
+
+/* PLAY REEL rails: a marquee where one row advances and the other recedes. */
+@keyframes marquee-fwd { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes marquee-rev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+/* Custom fullscreen reel player (lusion). Hide native cursor over the video so the
+   circular × cursor reads as "click to close". The bottom bar keeps its own pointer. */
+.reel-modal { transition: opacity .3s; }
+/* Keep the native cursor; the × blob just trails it. */
+.reel-video { cursor: pointer; }
+.reel-cursor { will-change: transform; }
+/* Thin scrubber line with a small white dot handle; the filled portion is painted
+   inline via a left→right gradient (progress driven). */
+.reel-range {
+  -webkit-appearance: none; appearance: none;
+  height: 2px; border-radius: 2px; cursor: pointer; outline: none;
+}
+.reel-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; border-radius: 50%; background: #fff; border: none;
+}
+.reel-range::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: #fff; border: none;
+}
+
+/* Menu dropdown pop-in (top-right origin). */
+@keyframes menu-pop {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Muted white-grey pill (Menu): no black border, no lift on hover. */
+.btn-menu { background: #e9e8e2; color: var(--color-ink-2); border-color: transparent; }
+.btn-menu:hover { background: #e2e1da; color: var(--color-ink-2); border-color: transparent; transform: none; box-shadow: none; }
+
+/* ---- Lusion masked headline (ported verbatim from the reference site) ----
+   Two lines rise out of an overflow-clip: the TOP line rises then slides to
+   centre; the tagline waits, then drops in from above. Same 9vw scale as the
+   original (--cc-h1-size). Triggered by adding .animate when in view. */
+:root { --cc-h1-size: 9vw; }
+/* padding-bottom gives descenders (g, p, comma) room inside the clip; the
+   negative margin claws most of it back so the two lines stay tight. Our text
+   has descenders — the lusion original (all-caps) never needed this. */
+.about-headers .h1-clip {
+  overflow: hidden; width: 100%; white-space: nowrap;
+  padding-bottom: calc(var(--cc-h1-size) * 0.2);
+  /* was -0.13: clawed the two lines together until the comma descender of
+     "live," touched "keep". -0.04 keeps them tight but clearly separate. */
+  margin-bottom: calc(var(--cc-h1-size) * -0.04);
+}
+.about-headers .h1-clip h2 {
+  display: inline-block; visibility: hidden; margin: 0;
+  font-family: var(--font-grotesk); font-weight: 700;
+  font-size: var(--cc-h1-size); line-height: 0.98;
+  letter-spacing: -0.03em; color: var(--color-ink);
+}
+.about-headers .h1-topline.animate { visibility: visible; animation: cc-topline 2s forwards; }
+.about-headers .h1-tagline.animate { visibility: visible; animation: cc-tagline 2s forwards; }
+
+@keyframes cc-topline {
+  0%   { transform: translateY(var(--cc-h1-size)); margin-left: 0; }
+  40%  { transform: translateY(0); margin-left: 0; }
+  100% { transform: translateX(-50%); margin-left: 50%; }
+}
+@keyframes cc-tagline {
+  0%   { transform: translateY(calc(-1 * var(--cc-h1-size))); }
+  20%  { transform: translateY(calc(-1 * var(--cc-h1-size))); }
+  100% { transform: translateY(0); }
+}
+
+/* marquee */
+@keyframes strip { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 10%, #000 90%, transparent);
+}
+
+/* subtle dotted/grid texture for hero (very light) */
+.dotgrid {
+  background-image: radial-gradient(rgba(12,13,16,.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+section[id], div[id] { scroll-margin-top: 96px; }
+
+/* ---- Featured Work: horizontal pinned track ----
+   `.fw-h` is added by anim.js on desktop (fine pointer, motion). WITHOUT it the
+   markup is a normal wrapping grid — the mobile / reduced-motion fallback.
+   Opaque paper bg + raised z-index so the pinned (position:fixed) panel cleanly
+   covers the outgoing Manifesto instead of letting it bleed through. */
+.fw-h {
+  height: 100vh; overflow: hidden; position: relative; z-index: 20;
+  background: var(--color-paper);
+}
+.fw-h .fw-track {
+  flex-wrap: nowrap; height: 100%; align-items: center; gap: 2vw;
+  padding-left: 5vw; padding-right: 5vw;
+  will-change: transform;
+}
+/* Smaller tiles → ~3 visible at rest, so the view is full the instant the track
+   appears (kills the "one tile + empty paper" lead-in). */
+.fw-h .fw-tile { width: 30vw; flex: 0 0 auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}

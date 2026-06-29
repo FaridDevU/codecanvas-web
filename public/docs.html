@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Docs — CodeCanvas AI</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/styles/github-dark.min.css" />
+  <style>
+    :root{
+      --paper:#f6f6f3; --white:#fff; --ink:#0c0d10; --ink-2:#3b3f47;
+      --muted:#8b909a; --line:#e7e7e2; --accent:#2f6bff; --night:#0d0f14;
+      --sans:"Switzer","Segoe UI",system-ui,sans-serif;
+      --grotesk:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+      --mono:"Space Mono","Consolas",monospace;
+      /* diagram semantic palette (mirrors STYLE-GUIDE) */
+      --c-ui:#2f6bff; --c-core:#0c0d10; --c-ai:#e8833a; --c-data:#2f9e6b; --c-ext:#8b909a; --c-bridge:#7c5cff;
+    }
+    *{box-sizing:border-box}
+    html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink-2);font-family:var(--sans);line-height:1.65}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* top bar */
+    .top{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:14px 4vw;background:rgba(246,246,243,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+    .top .left{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand{font-family:Georgia,serif;font-style:italic;font-size:1.45rem;color:var(--ink);text-decoration:none;white-space:nowrap}
+    .brand b{font-style:normal}
+    .brand:hover{text-decoration:none}
+    .crumb{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .top .right{display:flex;align-items:center;gap:10px}
+    .btn{font-family:var(--sans);font-weight:600;font-size:.85rem;text-decoration:none;border-radius:999px;padding:.5rem 1rem;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer;white-space:nowrap}
+    .btn:hover{text-decoration:none;border-color:var(--ink)}
+    .btn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+    .menu-toggle{display:none}
+
+    /* layout */
+    .wrap{display:grid;grid-template-columns:262px minmax(0,1fr) 200px;gap:40px;max-width:1280px;margin:0 auto;padding:40px 4vw 140px}
+
+    /* sidebar */
+    aside.nav{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;padding-right:6px}
+    aside.nav .group{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;padding:0 12px}
+    aside.nav .group:first-child{margin-top:0}
+    aside.nav a{display:flex;align-items:center;gap:8px;color:var(--ink-2);font-weight:500;font-size:.95rem;padding:7px 12px;border-radius:10px;transition:.12s}
+    aside.nav a:hover{background:var(--white);color:var(--ink);text-decoration:none}
+    aside.nav a.active{background:var(--white);color:var(--ink);box-shadow:0 1px 2px rgba(12,13,16,.06);font-weight:600}
+    aside.nav a .n{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:20px}
+    aside.nav a.active .n{color:var(--accent)}
+
+    /* content */
+    main{min-width:0}
+    main h1{font-family:var(--grotesk);font-weight:700;letter-spacing:-.03em;color:var(--ink);font-size:clamp(2rem,5vw,3rem);line-height:1.04;margin:0 0 10px;scroll-margin-top:84px}
+    main h2{font-family:var(--grotesk);font-weight:700;letter-spacing:-.02em;color:var(--ink);font-size:1.55rem;margin:56px 0 14px;padding-top:10px;border-top:1px solid var(--line);scroll-margin-top:84px}
+    main h3{font-family:var(--grotesk);font-weight:600;color:var(--ink);font-size:1.15rem;margin:32px 0 8px;scroll-margin-top:84px}
+    main p,main li{font-size:1.02rem;color:var(--ink-2);max-width:70ch}
+    main p>code,main li>code,main td>code,main a>code{font-family:var(--mono);font-size:.85em;background:var(--white);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--ink)}
+    main blockquote{margin:18px 0;padding:2px 18px;border-left:3px solid var(--accent);background:#eef2ff;border-radius:0 12px 12px 0;color:var(--ink-2)}
+    main blockquote p{margin:10px 0}
+    main ul,main ol{padding-left:22px}
+    main li{margin:5px 0}
+    main hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+    pre{background:var(--night);color:#e8eaf2;border-radius:14px;padding:18px 20px;overflow:auto;font-size:13px;line-height:1.7;border:1px solid #1c2030}
+    pre code{font-family:var(--mono);background:none;border:0;padding:0;font-size:13px}
+    main table{border-collapse:collapse;width:100%;margin:18px 0;font-size:.93rem;display:block;overflow:auto}
+    main th,main td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+    main th{background:var(--white);font-family:var(--grotesk);color:var(--ink);font-weight:600;white-space:nowrap}
+    main td{background:rgba(255,255,255,.5)}
+
+    /* diagram host with pan/zoom */
+    .diagram-box{position:relative;background:var(--white);border:1px solid var(--line);border-radius:16px;margin:22px 0;overflow:hidden}
+    .diagram-box .mz-host{height:clamp(360px,62vh,660px);width:100%}
+    .diagram-box.fullscreen{position:fixed;inset:14px;z-index:60;margin:0;box-shadow:0 24px 70px rgba(12,13,16,.32)}
+    .diagram-box.fullscreen .mz-host{height:100%}
+    .mz-host svg{display:block}
+    .diagram-toolbar{position:absolute;top:10px;right:10px;z-index:6;display:flex;gap:6px}
+    .diagram-toolbar button{font-family:var(--sans);font-size:.78rem;font-weight:600;color:var(--ink);background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+    .diagram-toolbar button:hover{border-color:var(--ink)}
+    .diagram-hint{position:absolute;right:12px;bottom:9px;z-index:6;font-family:var(--mono);font-size:10px;color:var(--muted);background:rgba(255,255,255,.82);padding:2px 8px;border-radius:6px;pointer-events:none}
+    .svg-pan-zoom-control{transform:translate(8px,-8px)}
+
+    /* on-page TOC */
+    aside.toc{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;font-size:.85rem}
+    aside.toc .group{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+    aside.toc a{display:block;color:var(--muted);padding:4px 0 4px 12px;border-left:2px solid var(--line)}
+    aside.toc a:hover,aside.toc a.active{color:var(--ink);border-left-color:var(--accent);text-decoration:none}
+
+    /* footer nav */
+    .pager{display:flex;justify-content:space-between;gap:14px;margin-top:64px;border-top:1px solid var(--line);padding-top:22px}
+    .pager a{flex:1;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--white);color:var(--ink)}
+    .pager a:hover{border-color:var(--ink);text-decoration:none}
+    .pager .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px}
+    .pager .nx{text-align:right}
+
+    /* legend popover */
+    .legend{position:fixed;right:18px;bottom:18px;z-index:40;background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 30px rgba(12,13,16,.12);padding:16px 18px;width:300px;display:none}
+    .legend.open{display:block}
+    .legend h4{font-family:var(--grotesk);margin:0 0 10px;color:var(--ink);font-size:.95rem}
+    .legend .row{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:.82rem}
+    .legend .sw{width:26px;height:16px;border-radius:5px;border-width:1.5px;border-style:solid;flex:none}
+    .legend .arrows{margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-size:.78rem;color:var(--ink-2)}
+    .legend .arrows div{margin:4px 0}
+    .legend .arrows b{font-family:var(--mono);color:var(--ink)}
+    .legend-fab{position:fixed;right:18px;bottom:18px;z-index:39}
+
+    .loading,.errbox{color:var(--muted);font-family:var(--mono);font-size:13px;padding:40px 0}
+    .errbox{color:var(--ink-2)}
+
+    @media(max-width:1080px){.wrap{grid-template-columns:240px minmax(0,1fr)}aside.toc{display:none}}
+    @media(max-width:760px){
+      .wrap{grid-template-columns:1fr;gap:18px;padding-top:18px}
+      aside.nav{position:fixed;inset:56px 0 auto 0;top:56px;background:var(--paper);border-bottom:1px solid var(--line);max-height:70vh;padding:16px 4vw;z-index:25;display:none}
+      aside.nav.open{display:block}
+      .menu-toggle{display:inline-flex}
+      .crumb{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="left">
+      <button class="btn menu-toggle" id="menuBtn" aria-label="Menu">Menu</button>
+      <a class="brand" href="/">CodeCanvas <b>AI</b></a>
+      <span class="crumb" id="crumb">Documentation</span>
+    </div>
+    <div class="right">
+      <a class="btn" href="docs-api.html">API Console</a>
+      <a class="btn btn-dark" href="/">Back to site</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="nav" id="sidenav"></aside>
+    <main id="content"><div class="loading">Loading documentation…</div></main>
+    <aside class="toc" id="toc"></aside>
+  </div>
+
+  <button class="btn legend-fab" id="legendFab" title="Diagram legend">Diagram legend</button>
+  <div class="legend" id="legend">
+    <h4>Diagram legend</h4>
+    <div class="row"><span class="sw" style="background:#eaf0ff;border-color:var(--c-ui)"></span> UI surface — panes, views, canvas</div>
+    <div class="row"><span class="sw" style="background:#fff;border-color:var(--c-core)"></span> Core — logic, services, modules</div>
+    <div class="row"><span class="sw" style="background:#fdf0e6;border-color:var(--c-ai)"></span> AI — agents, LLM / CLI backends</div>
+    <div class="row"><span class="sw" style="background:#e8f6ee;border-color:var(--c-data)"></span> Data — files, persistence, state</div>
+    <div class="row"><span class="sw" style="background:#f1f1ee;border-color:var(--c-ext);border-style:dashed"></span> External — OS, 3rd-party, child procs</div>
+    <div class="row"><span class="sw" style="background:#f0ecff;border-color:var(--c-bridge)"></span> Bridge — IPC, ProxyChannel, penpal</div>
+    <div class="arrows">
+      <div><b>A &#8594; B</b> sync call / direct data</div>
+      <div><b>A &#8594; B</b> (dashed) async / event / IPC</div>
+      <div><b>A &#8658; B</b> (thick) primary happy path</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets@11/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad:false, theme:'base', securityLevel:'loose',
+      themeVariables:{ fontFamily:'Space Grotesk, Segoe UI, sans-serif', fontSize:'14px',
+        primaryColor:'#ffffff', primaryTextColor:'#0c0d10', primaryBorderColor:'#0c0d10',
+        lineColor:'#3b3f47', tertiaryColor:'#f6f6f3' } });
+
+    // Sidebar map mirrors public/docs/_meta/IA.md
+    const NAV = [
+      { group:'Introduction', items:[
+        ['00-overview','Overview'], ['01-architecture','Architecture'] ]},
+      { group:'Subsystems', items:[
+        ['02-design-environment','Design Environment'],
+        ['03-visual-editing-writeback','Visual Editing & Write-back'],
+        ['04-ai-chat-multiagent','AI Chat (multi-agent)'],
+        ['05-codecanvas-preview','Live Preview'],
+        ['06-cli','CLI (Rust)'],
+        ['07-core-platform-build','Core Platform & Build'] ]},
+      { group:'Reference', items:[
+        ['08-reusable-code','Reusable Code'],
+        ['09-api-reference','API Reference'],
+        ['10-diagrams','Diagrams'] ]},
+      { group:'Operations', items:[
+        ['11-security-permissions','Security & Permissions'],
+        ['12-operations','Telemetry, Limits & Ops'] ]},
+      { group:'Meta', items:[
+        ['_meta/DOCUMENTATION-STANDARDS','Documentation Standards'],
+        ['_meta/STYLE-GUIDE','Diagram & Style Guide'] ]},
+    ];
+    const FLAT = NAV.flatMap(g => g.items.map(([id,t]) => ({id,t,group:g.group})));
+    const TITLES = Object.fromEntries(FLAT.map(p=>[p.id,p.t]));
+
+    const $ = s => document.querySelector(s);
+    const slug = s => s.toLowerCase().trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-');
+
+    function buildSidebar(active){
+      const el = $('#sidenav'); el.innerHTML='';
+      for(const g of NAV){
+        const h=document.createElement('p'); h.className='group'; h.textContent=g.group; el.appendChild(h);
+        for(const [id,t] of g.items){
+          const a=document.createElement('a'); a.href='?p='+encodeURIComponent(id);
+          const n = id.includes('/')?'':id.slice(0,2);
+          a.innerHTML = (n?`<span class="n">${n}</span>`:'<span class="n"></span>')+`<span>${t}</span>`;
+          if(id===active) a.className='active';
+          a.onclick = e => { e.preventDefault(); go(id); if(window.innerWidth<=760) el.classList.remove('open'); };
+          el.appendChild(a);
+        }
+      }
+    }
+
+    function buildToc(){
+      const toc=$('#toc'); const hs=[...$('#content').querySelectorAll('h2,h3')];
+      if(hs.length<2){ toc.innerHTML=''; return; }
+      toc.innerHTML='<p class="group">On this page</p>';
+      for(const h of hs){
+        if(!h.id) h.id=slug(h.textContent);
+        const a=document.createElement('a'); a.href='#'+h.id; a.textContent=h.textContent;
+        if(h.tagName==='H3') a.style.paddingLeft='22px';
+        a.onclick=e=>{e.preventDefault();document.getElementById(h.id).scrollIntoView();history.replaceState(null,'','#'+h.id);};
+        toc.appendChild(a);
+      }
+    }
+
+    async function renderMermaid(){
+      const blocks=[...$('#content').querySelectorAll('code.language-mermaid')];
+      let i=0;
+      for(const code of blocks){
+        const pre = code.closest('pre') || code;
+        const id='mmd-'+(i++);
+        const box=document.createElement('div'); box.className='diagram-box';
+        const bar=document.createElement('div'); bar.className='diagram-toolbar';
+        bar.innerHTML='<button data-act="reset" title="Fit to view">Fit</button><button data-act="full" title="Fullscreen">Fullscreen</button>';
+        const host=document.createElement('div'); host.className='mz-host';
+        const hint=document.createElement('div'); hint.className='diagram-hint'; hint.textContent='scroll = zoom · drag = pan';
+        box.append(bar, host, hint);
+        try{
+          const {svg}=await mermaid.render(id, code.textContent);
+          host.innerHTML=svg;
+          const el=host.querySelector('svg');
+          el.removeAttribute('style'); el.style.maxWidth='none'; el.style.display='block';
+          el.setAttribute('width','100%'); el.setAttribute('height','100%');
+          pre.replaceWith(box);
+          let pz=null;
+          if(window.svgPanZoom){
+            pz=window.svgPanZoom(el,{zoomEnabled:true,panEnabled:true,controlIcons:true,fit:true,center:true,
+              minZoom:0.2,maxZoom:20,zoomScaleSensitivity:0.35,mouseWheelZoomEnabled:true});
+            box._pz=pz;
+            new ResizeObserver(()=>{ try{pz.resize();pz.fit();pz.center();}catch(e){} }).observe(host);
+          }
+          const refit=()=>{ if(pz){try{pz.resize();pz.fit();pz.center();}catch(e){}} };
+          bar.querySelector('[data-act=reset]').onclick=refit;
+          bar.querySelector('[data-act=full]').onclick=()=>{
+            const on=box.classList.toggle('fullscreen');
+            bar.querySelector('[data-act=full]').textContent = on?'Exit':'Fullscreen';
+            setTimeout(refit,70);
+          };
+        }catch(err){
+          host.innerHTML='<div class="errbox">Diagram failed to render: '+(err&&err.message||err)+'</div>';
+          pre.replaceWith(box);
+        }
+      }
+    }
+
+    function highlight(){
+      $('#content').querySelectorAll('pre code').forEach(c=>{
+        if(c.classList.contains('language-mermaid')) return;
+        try{ window.hljs.highlightElement(c); }catch(e){}
+      });
+    }
+
+    function pager(active){
+      const idx=FLAT.findIndex(p=>p.id===active); if(idx<0) return '';
+      const prev=FLAT[idx-1], next=FLAT[idx+1];
+      let h='<div class="pager">';
+      h+= prev?`<a href="?p=${encodeURIComponent(prev.id)}" data-go="${prev.id}"><span class="lbl">Previous</span>${prev.t}</a>`:'<span></span>';
+      h+= next?`<a class="nx" href="?p=${encodeURIComponent(next.id)}" data-go="${next.id}"><span class="lbl">Next</span>${next.t}</a>`:'<span></span>';
+      h+='</div>'; return h;
+    }
+
+    const isAllowed = id => FLAT.some(p=>p.id===id);
+
+    async function go(id, push=true){
+      if(!isAllowed(id)) id='00-overview';
+      if(push) history.pushState({id},'', '?p='+encodeURIComponent(id));
+      buildSidebar(id);
+      $('#crumb').textContent = (FLAT.find(p=>p.id===id)?.group||'Documentation')+' / '+(TITLES[id]||id);
+      document.title = (TITLES[id]||'Docs')+' — CodeCanvas AI';
+      const c=$('#content'); c.innerHTML='<div class="loading">Loading…</div>';
+      try{
+        const res=await fetch('docs/'+id+'.md',{cache:'no-cache'});
+        if(!res.ok) throw new Error(res.status);
+        const md=await res.text();
+        c.innerHTML = marked.parse(md) + pager(id);
+        c.querySelectorAll('.pager a[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.go);});
+        highlight();
+        await renderMermaid();
+        buildToc();
+        window.scrollTo(0,0);
+        if(location.hash){ const t=document.getElementById(location.hash.slice(1)); if(t) t.scrollIntoView(); }
+      }catch(err){
+        c.innerHTML='<h1>'+(TITLES[id]||id)+'</h1><div class="errbox">This section is not available yet ('+err.message+').<br>'+
+          'If the docs were just generated, make sure the dev server is running and the file <code>public/docs/'+id+'.md</code> exists.</div>'+pager(id);
+        c.querySelectorAll('.pager a[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();go(a.dataset.go);});
+      }
+    }
+
+    addEventListener('popstate', ()=>{ go(new URLSearchParams(location.search).get('p')||'00-overview', false); });
+    addEventListener('keydown', e=>{ if(e.key==='Escape'){ document.querySelectorAll('.diagram-box.fullscreen').forEach(b=>{
+      b.classList.remove('fullscreen'); const fb=b.querySelector('[data-act=full]'); if(fb) fb.textContent='Fullscreen';
+      if(b._pz){ setTimeout(()=>{try{b._pz.resize();b._pz.fit();b._pz.center();}catch(_){}},70); } }); }});
+    $('#menuBtn').onclick=()=>$('#sidenav').classList.toggle('open');
+    $('#legendFab').onclick=()=>{ $('#legend').classList.toggle('open'); $('#legendFab').style.display = $('#legend').classList.contains('open')?'none':'inline-flex'; };
+    $('#legend').onclick=e=>{ if(e.target.id==='legend') return; };
+    document.addEventListener('click',e=>{ if(!$('#legend').contains(e.target) && e.target.id!=='legendFab'){ $('#legend').classList.remove('open'); $('#legendFab').style.display='inline-flex'; }});
+
+    go(new URLSearchParams(location.search).get('p')||'00-overview', false);
+  </script>
+</body>
+</html>

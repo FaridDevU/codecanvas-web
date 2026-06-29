@@ -1,0 +1,124 @@
+import { useLayoutEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+// A thick blue ribbon (Lusion style) that snakes top-to-bottom behind every
+// section across the full width of the page. It draws itself as you scroll and
+// un-draws on the way up. The SVG spans the WHOLE document height (user units =
+// CSS px) so there's no aspect-ratio stretching.
+//
+// The draw front tracks your VERTICAL scroll position (not raw path length):
+// because the line weaves side to side, equal path length ≠ equal height, so a
+// length-proportional draw lags behind the viewport. We sample the path's y for
+// each length fraction and draw up to wherever the viewport currently is.
+
+// Wide organic weave: alternate left/right across the width while descending,
+// with vertical control handles so each crossing is a smooth S-curve.
+// Organic, varying-amplitude weave — reads like lusion's flowing tube rather than
+// a hard zigzag. y stays monotonically increasing so the scroll-draw sampling
+// (fracAtY below) holds. Tunable: the x waypoints align the crossings with the
+// sections the line should thread past.
+function buildPath(w, h) {
+  const m = Math.max(70, w * 0.08)
+  const L = m, R = w - m
+  const xs = [R - w * 0.05, L + w * 0.03, R, L + w * 0.10, R - w * 0.04, L + w * 0.06]
+  const ys = [-60, h * 0.17, h * 0.39, h * 0.60, h * 0.81, h + 60]
+  let d = `M${xs[0]},${ys[0]}`
+  for (let i = 1; i < xs.length; i++) {
+    const dy = ys[i] - ys[i - 1]
+    d += ` C${xs[i - 1]},${ys[i - 1] + dy * 0.55} ${xs[i]},${ys[i] - dy * 0.55} ${xs[i]},${ys[i]}`
+  }
+  return d
+}
+
+export default function ScrollLine() {
+  const path = useRef(null)
+  const [dims, setDims] = useState({ w: 1440, h: 3000 })
+
+  // Keep the SVG the size of the whole document.
+  useLayoutEffect(() => {
+    const measure = () =>
+      setDims({ w: window.innerWidth, h: document.documentElement.scrollHeight })
+    measure()
+    window.addEventListener('resize', measure)
+    // Re-measure after pins/fonts settle (the FW horizontal pin adds page height).
+    ScrollTrigger.addEventListener('refresh', measure)
+    const t = setTimeout(measure, 600) // page height settles after images load
+    return () => {
+      window.removeEventListener('resize', measure)
+      ScrollTrigger.removeEventListener('refresh', measure)
+      clearTimeout(t)
+    }
+  }, [])
+
+  // Sample path y per length fraction, then draw up to the viewport on scroll.
+  useLayoutEffect(() => {
+    const el = path.current
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.style.strokeDashoffset = '0'
+      return
+    }
+    const total = el.getTotalLength()
+    const N = 240
+    const ys = []
+    for (let i = 0; i <= N; i++) ys.push(el.getPointAtLength((total * i) / N).y)
+
+    // length fraction (0..1) whose point sits at document y
+    const fracAtY = (y) => {
+      if (y <= ys[0]) return 0
+      for (let i = 1; i <= N; i++) {
+        if (ys[i] >= y) {
+          const span = ys[i] - ys[i - 1] || 1
+          return (i - 1 + (y - ys[i - 1]) / span) / N
+        }
+      }
+      return 1
+    }
+
+    const update = () => {
+      // draw a little ahead of the cursor (but still visibly drawing)
+      const frac = fracAtY(window.scrollY + window.innerHeight * 0.7)
+      el.style.strokeDashoffset = String(1 - frac)
+    }
+    update()
+    // Route through ScrollTrigger's single rAF (shared with Lenis) instead of a
+    // separate window 'scroll' listener + rAF. onRefresh redraws after layout.
+    const st = ScrollTrigger.create({ onUpdate: update, onRefresh: update })
+    return () => st.kill()
+  }, [dims])
+
+  return (
+    <svg
+      className="pointer-events-none absolute left-0 top-0 w-full"
+      style={{ zIndex: -1, height: dims.h, opacity: 0.5 }}
+      viewBox={`0 0 ${dims.w} ${dims.h}`}
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        {/* Vertical gradient over the whole document — the ribbon shifts colour
+            as it travels down through the sections. */}
+        {/* lusion.co line is a glossy cobalt-blue tube — tight blue range with a
+            lighter "lit" core, not a rainbow. */}
+        <linearGradient id="scrollline-grad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2={dims.h}>
+          <stop offset="0" stopColor="#7da0ff" />
+          <stop offset="0.5" stopColor="#2f4dff" />
+          <stop offset="1" stopColor="#7da0ff" />
+        </linearGradient>
+      </defs>
+      <path
+        ref={path}
+        d={buildPath(dims.w, dims.h)}
+        stroke="url(#scrollline-grad)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        pathLength="1"
+        strokeDasharray="1"
+        strokeDashoffset="1"
+      />
+    </svg>
+  )
+}
