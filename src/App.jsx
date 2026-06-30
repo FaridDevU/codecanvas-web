@@ -31,6 +31,8 @@ export default function App() {
         <XRayS2 />
         <XRayS3 />
         <XRayS4 />
+        {/* visual bridge S4 → S5: scanline grammar carried into the brand resolve */}
+        <span className="s-bridge" aria-hidden />
         <XRayS5 />
       </main>
     </>

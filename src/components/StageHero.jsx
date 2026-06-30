@@ -54,7 +54,7 @@ export default function StageHero() {
       <div
         data-parallax="-38"
         aria-hidden
-        className="pointer-events-none absolute -z-10 left-1/2 top-[18vh] h-[60vh] w-[60vh] -translate-x-1/2 rounded-full"
+        className="pointer-events-none absolute -z-10 left-1/2 top-[18vh] h-[60vh] w-[min(60vh,92vw)] -translate-x-1/2 rounded-full"
         style={{ background: 'radial-gradient(circle, rgba(47,77,255,.18), transparent 65%)', filter: 'blur(40px)' }}
       />
       <div

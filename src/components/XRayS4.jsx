@@ -33,12 +33,28 @@ export default function XRayS4() {
 
     // Mobile (+ reduced-motion): static full state = the payoff (the phone canvas, which keeps the
     // loopback terminal strip in frame as the local proof). No scrub, no morph.
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    if (reduced() || mobile) {
+    // "mobile" = not a fine-pointer desktop (narrow OR coarse/touch, incl. ≥768 tablets):
+    // pins require pointer:fine, coarse gets the non-pinned wipe.
+    const mobile = !window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
+    if (reduced()) {
       stage.current.dataset.static = '1'
-      setv('--proj', '1'); setv('--serve', '1'); setv('--zoom', '1'); setv('--morph', '1')
+      setv('--proj', '1'); setv('--serve', '1'); setv('--zoom', '1'); setv('--morph', '1'); setv('--m', '1')
       setShown(true)
       return
+    }
+    // Mobile: a short, reversible wipe (no IDE, no pin) — the desktop preview is the base
+    // and the phone wipes over it centre-out (--m), so two headlines never show at once.
+    if (mobile) {
+      setv('--proj', '1'); setv('--serve', '1'); setv('--zoom', '1')
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({ trigger: el, start: 'top 80%', onEnter: () => setShown(true) })
+        const st = ScrollTrigger.create({
+          trigger: stage.current, start: 'top 80%', end: 'top 30%', scrub: true,
+          onUpdate: (s) => setv('--m', s.progress.toFixed(3)),
+        })
+        return () => st.kill()
+      }, el)
+      return () => ctx.revert()
     }
 
     const ctx = gsap.context(() => {
@@ -65,8 +81,8 @@ export default function XRayS4() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s4" className="relative px-[5vw] pt-[20vh] pb-[14vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7">
+    <section ref={section} id="xray-s4" className="relative px-[5vw] pt-[10vh] pb-[6vh] md:pt-[14vh] md:pb-[8vh] font-grotesk">
+      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
         <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
           <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
             {SPINE.map((s, i) => (
@@ -76,22 +92,26 @@ export default function XRayS4() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <p className="eyebrow mb-6">04 · Surface ⇄ Structure</p>
-          <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-            <MaskLine shown={shown}>On your</MaskLine>
-            <MaskLine shown={shown} delay="0.09s">machine.</MaskLine>
-          </h2>
-          <p
-            className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
-            style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-          >
-            The project, its files, the canvas, and the live preview run on your machine — the terminal
-            logs every request to <span className="font-medium text-ink">loopback (::1)</span> returning
-            <span className="font-medium text-ink"> 200</span>, served from
-            <span className="font-medium text-ink"> localhost</span>. The same local preview re-renders from the
-            full-width canvas to an <span className="font-medium text-ink">iPhone 16 Pro Max</span> —
-            same local server, a different viewport.
-          </p>
+          <div className="s-head s-cols">
+            <div>
+              <p className="eyebrow xray-eyebrow mb-6">04 · Local preview</p>
+              <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+                <MaskLine shown={shown}>On your</MaskLine>
+                <MaskLine shown={shown} delay="0.09s">machine.</MaskLine>
+              </h2>
+            </div>
+            <p
+              className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
+              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+            >
+              The project, its files, the canvas, and the live preview run on your machine — the terminal
+              logs every request to <span className="font-medium text-ink">loopback (::1)</span> returning
+              <span className="font-medium text-ink"> 200</span>, served from
+              <span className="font-medium text-ink"> localhost</span>. The same local preview re-renders from the
+              full-width canvas to an <span className="font-medium text-ink">iPhone 16 Pro Max</span> —
+              same local server, a different viewport.
+            </p>
+          </div>
 
           <div ref={stage} className="s4-stage mt-12">
             {/* IDE scene — 04e (clean, bright frame of the local IDE: Code explorer with the project files +
@@ -114,9 +134,7 @@ export default function XRayS4() {
             <span className="s4-tag" aria-hidden>::1 GET / · 200 in 1 ms</span>
           </div>
 
-          <p className="mt-5 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-            REAL CAPTURE · codecanvas-demo (HTML) — Code explorer (index.html · pricing.html) + loopback terminal (::1 GET / → 200). The local preview, framed on the canvas, wiped desktop → iPhone 16 Pro Max — real captures (02-device-switch.webm · 04b) on a shared frame, not one continuous take.
-          </p>
+          <p className="s-cap mt-5">LOCAL PREVIEW · ::1 → 200</p>
 
           {/* S5 teaser intentionally omitted: S5 isn't built yet, so the phone stays the stable terminal
               state to the end of the section — its exit is postponed until there's a real transition to S5. */}

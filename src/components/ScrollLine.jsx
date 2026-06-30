@@ -14,17 +14,21 @@ gsap.registerPlugin(ScrollTrigger)
 // length-proportional draw lags behind the viewport. We sample the path's y for
 // each length fraction and draw up to wherever the viewport currently is.
 
-// Wide organic weave: alternate left/right across the width while descending,
-// with vertical control handles so each crossing is a smooth S-curve.
-// Organic, varying-amplitude weave — reads like lusion's flowing tube rather than
-// a hard zigzag. y stays monotonically increasing so the scroll-draw sampling
-// (fracAtY below) holds. Tunable: the x waypoints align the crossings with the
-// sections the line should thread past.
+// The ribbon threads NEGATIVE SPACE only. Across S1–S5 the editorial text moves
+// side to side (S1 left, S2 right, S3 shifted, S4 two-col, S5 centred) and the
+// full-width stages occupy the centre, so a wide weave can't avoid type anywhere.
+// The one corridor free of text AND stages on every section/viewport is the outer
+// LEFT gutter (content is centred with margin, and starts at ≥5vw on mobile). So
+// the line lives there as a gentle gutter weave — Lusion's edge thread, never a
+// slash across a headline. y stays monotonic so the scroll-draw sampling holds.
 function buildPath(w, h) {
-  const m = Math.max(70, w * 0.08)
-  const L = m, R = w - m
-  const xs = [R - w * 0.05, L + w * 0.03, R, L + w * 0.10, R - w * 0.04, L + w * 0.06]
-  const ys = [-60, h * 0.17, h * 0.39, h * 0.60, h * 0.81, h + 60]
+  // Stay INSIDE the page's 5vw padding (every section uses px-[5vw]) so the line is
+  // always in the gutter, left of all text/stages, on every viewport.
+  const gutter = Math.max(14, w * 0.04)
+  const base = gutter * 0.35
+  const amp = gutter * 0.5
+  const xs = [base + amp, base, base + amp, base, base + amp, base]
+  const ys = [-60, h * 0.2, h * 0.4, h * 0.62, h * 0.82, h + 60]
   let d = `M${xs[0]},${ys[0]}`
   for (let i = 1; i < xs.length; i++) {
     const dy = ys[i] - ys[i - 1]

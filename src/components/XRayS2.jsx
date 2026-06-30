@@ -52,18 +52,34 @@ export default function XRayS2() {
       )
     }
 
-    // Mobile (+ reduced-motion): static full state, no pin/scrub — a legible vertical
-    // sequence rather than a "stuck" pinned transformation.
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    if (reduced() || mobile) {
-      setv('--open', '1'); setv('--draw', '1'); setv('--s3', '1'); setShown(true)
-      // Mobile hides the connector (CSS); reduced-motion desktop still needs it drawn
-      // once (statically) so the rings aren't left floating without a line.
+    // "mobile" = anything that is NOT a fine-pointer desktop: narrow screens AND any
+    // coarse/touch device (incl. 768px+ tablets). Pins require pointer:fine; coarse gets
+    // the non-pinned choreography. Mirrors the CSS `(max-width:767px), (pointer:coarse)`.
+    const mobile = !window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
+    // Reduced-motion: static full state, no scrub. Desktop also draws the connector
+    // once (so the rings aren't left floating); mobile hides it (CSS) and returns.
+    if (reduced()) {
+      setv('--open', '1'); setv('--draw', '1'); setv('--m', '1'); setShown(true)
       if (mobile) return
       const ro = new ResizeObserver(drawConnector)
       ro.observe(dip.current)
       requestAnimationFrame(drawConnector)
       return () => ro.disconnect()
+    }
+    // Mobile: light, reversible entry choreography (no pin) — canvas appears, then the
+    // horizontal seam draws, then the source. Drives one progress var (--m) the mobile
+    // CSS sequences; the desktop --open/--draw are inert under the mobile layout.
+    if (mobile) {
+      setv('--open', '1'); setv('--draw', '1')
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({ trigger: el, start: 'top 80%', onEnter: () => setShown(true) })
+        const st = ScrollTrigger.create({
+          trigger: dip.current, start: 'top 85%', end: 'top 32%', scrub: true,
+          onUpdate: (s) => setv('--m', s.progress.toFixed(3)),
+        })
+        return () => st.kill()
+      }, el)
+      return () => ctx.revert()
     }
 
     const ro = new ResizeObserver(drawConnector)
@@ -80,7 +96,6 @@ export default function XRayS2() {
           const p = s.progress
           setv('--open', clamp01(p / 0.42).toFixed(3))
           setv('--draw', clamp01((p - 0.46) / 0.4).toFixed(3))
-          setv('--s3', clamp01((p - 0.92) / 0.08).toFixed(3))
           drawConnector() // endpoints track the canvas pane as it retracts
         },
       })
@@ -91,8 +106,8 @@ export default function XRayS2() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s2" className="relative px-[5vw] pt-[20vh] pb-[26vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7">
+    <section ref={section} id="xray-s2" className="relative px-[5vw] pt-[10vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
+      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
         <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
           <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
             {SPINE.map((s, i) => (
@@ -102,19 +117,21 @@ export default function XRayS2() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <p className="eyebrow mb-6">02 · Surface ⇄ Structure</p>
-          <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-            <MaskLine shown={shown}>Two views.</MaskLine>
-            <MaskLine shown={shown} delay="0.09s">One file.</MaskLine>
-          </h2>
-          <p
-            className="mt-7 max-w-[48ch] text-[1.06rem] leading-relaxed text-ink-2"
-            style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-          >
-            The <code className="font-mono text-[.95em] text-ink">&lt;h1&gt;</code> you select on the canvas is
-            rendered from the same <code className="font-mono text-[.95em] text-ink">index.html</code> open beside
-            it — one source, two ways to see it.
-          </p>
+          <div className="s-head s-head-right">
+            <p className="eyebrow xray-eyebrow mb-6">02 · Canvas ⇄ Source</p>
+            <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+              <MaskLine shown={shown}>Two views.</MaskLine>
+              <MaskLine shown={shown} delay="0.09s">One file.</MaskLine>
+            </h2>
+            <p
+              className="mt-7 max-w-[48ch] text-[1.06rem] leading-relaxed text-ink-2"
+              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+            >
+              The <code className="font-mono text-[.95em] text-ink">&lt;h1&gt;</code> you select on the canvas is
+              rendered from the same <code className="font-mono text-[.95em] text-ink">index.html</code> open beside
+              it — one source, two ways to see it.
+            </p>
+          </div>
 
           <div ref={dip} className="s2-diptych mt-12">
             <div className="s2-pane s2-canvas">
@@ -134,20 +151,7 @@ export default function XRayS2() {
             </svg>
           </div>
 
-          <p className="mt-5 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-            REAL CAPTURES · codecanvas-demo — the &lt;h1&gt; selected on the canvas, and index.html (line 35) open with the .hero rule that lays it out
-          </p>
-
-          <div className="s1-tonext" style={{ opacity: 'var(--s3)', transform: 'translateY(calc((1 - var(--s3)) * 26px))' }}>
-            <span className="s1-tonext-rule" aria-hidden />
-            <p className="eyebrow !text-[#2f3df5]">Next · S3</p>
-            <p className="mt-2 text-[clamp(1.7rem,3.4vw,2.9rem)] tracking-tight text-ink" style={{ fontFamily: 'var(--font-forum)' }}>
-              Hand it to the agent.
-            </p>
-            <p className="mt-2 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-              with its real context — tag, styles, project
-            </p>
-          </div>
+          <p className="s-cap mt-5">CANVAS + INDEX.HTML · one project</p>
         </div>
       </div>
     </section>

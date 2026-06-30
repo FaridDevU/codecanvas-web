@@ -12,5 +12,7 @@ export function initSmoothScroll() {
   lenis.on('scroll', ScrollTrigger.update)
   gsap.ticker.add((t) => lenis.raf(t * 1000))
   gsap.ticker.lagSmoothing(0)
+  // Exposed so overlays (e.g. the reel modal) can lock/unlock page scroll.
+  window.__lenis = lenis
   return lenis
 }

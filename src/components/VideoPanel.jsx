@@ -52,6 +52,10 @@ export default function VideoPanel() {
   const reelOverlay = useRef(null)
   const playBtn = useRef(null)
   const fullVideo = useRef(null)
+  const dialogRef = useRef(null)   // modal root (focus-trap scope)
+  const closeBtn = useRef(null)
+  const lastFocused = useRef(null) // element to restore focus to on close
+  const [hintDismissed, setHintDismissed] = useState(false)
   const [shown, setShown] = useState(false)
   const [playHover, setPlayHover] = useState(false)
   const [reelOpen, setReelOpen] = useState(false)
@@ -59,7 +63,9 @@ export default function VideoPanel() {
   // downloads/decodes overview.mp4 for a hidden element (audit fix).
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
+    // Touch/coarse (incl. ≥768 tablets) get the tap-to-play poster, not the desktop
+    // WebGL plane whose play lockup is hover-only. Matches the X-Ray coarse gating.
+    const mq = window.matchMedia('(max-width: 767px), (pointer: coarse)')
     const sync = () => setIsMobile(mq.matches)
     sync(); mq.addEventListener('change', sync)
     return () => mq.removeEventListener('change', sync)
@@ -80,6 +86,7 @@ export default function VideoPanel() {
   const openReel = () => {
     const v = fullVideo.current
     if (v) { v.currentTime = 0; v.muted = false; setMuted(false); v.play().catch(() => {}) }
+    setHintDismissed(false)
     setReelOpen(true)
   }
   const closeReel = () => {
@@ -101,14 +108,44 @@ export default function VideoPanel() {
     const v = fullVideo.current
     if (v && v.duration) v.currentTime = Number(e.target.value) * v.duration
   }
+  // Open: lock page scroll (Lenis + body), trap focus inside the dialog, wire keys
+  // (Esc closes, Space toggles play), and restore focus to the trigger on close.
   useEffect(() => {
     if (!reelOpen) return
+    lastFocused.current = document.activeElement
+    window.__lenis?.stop?.()
+    // Lock both body and html so scroll is held whether the scroller is body, html,
+    // or Lenis (reduced-motion has no Lenis). The fixed modal covers any reflow.
+    const prevBody = document.body.style.overflow
+    const prevHtml = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    const focusTimer = setTimeout(() => closeBtn.current?.focus(), 0)
+
     const onKey = (e) => {
-      if (e.key === 'Escape') closeReel()
-      else if (e.key === ' ') { e.preventDefault(); togglePlay() }
+      if (e.key === 'Escape') { closeReel(); return }
+      if (e.key === ' ' && e.target.tagName !== 'INPUT') { e.preventDefault(); togglePlay(); return }
+      if (e.key === 'Tab') {
+        const root = dialogRef.current
+        if (!root) return
+        const els = Array.from(
+          root.querySelectorAll('button, [href], input, [tabindex]:not([tabindex="-1"])'),
+        ).filter((el) => !el.disabled && el.offsetParent !== null)
+        if (!els.length) return
+        const first = els[0], last = els[els.length - 1]
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+      }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      clearTimeout(focusTimer)
+      document.body.style.overflow = prevBody
+      document.documentElement.style.overflow = prevHtml
+      window.__lenis?.start?.()
+      lastFocused.current?.focus?.()
+    }
   }, [reelOpen])
 
   // Soft trailing cursor: the × blob follows the mouse slowly (exponential ease, no
@@ -150,7 +187,7 @@ export default function VideoPanel() {
 
   // Mount the WebGL panel (desktop only — needs the anchor layout + is heavy).
   useEffect(() => {
-    if (reduced() || window.matchMedia('(max-width: 767px)').matches) return
+    if (reduced() || !window.matchMedia('(min-width: 768px) and (pointer: fine)').matches) return
     if (!canvas.current) return
     // wait a tick so fonts/layout settle before measuring the anchors
     let dispose
@@ -280,23 +317,33 @@ export default function VideoPanel() {
           </div>
         </div>
 
-        {/* Mobile fallback: a plain video (no WebGL on phones). Tap → full reel + sound.
-            Only mounted on small screens so desktop never fetches/decodes it. */}
+        {/* Mobile entry to the reel: a legible poster still + play affordance — NOT an
+            autoplaying, illegible object-cover video. Tap → full reel with sound. The
+            reel itself isn't fetched until this is pressed (modal video preload="none"). */}
         {isMobile && (
-          <button onClick={openReel} aria-label="Play overview reel" className="mt-10 block w-full overflow-hidden rounded-2xl shadow-[0_30px_80px_-40px_rgba(20,30,90,.5)]">
-            <video className="aspect-video w-full object-cover" autoPlay muted loop playsInline preload="none">
-              <source src={VIDEO} type="video/mp4" />
-            </video>
+          <button onClick={openReel} aria-label="Play the overview reel with sound"
+            className="reel-thumb mt-10 block w-full overflow-hidden rounded-2xl shadow-[0_30px_80px_-40px_rgba(20,30,90,.5)]">
+            <img src="/media/03-canvas-app-open.png" alt="CodeCanvas overview"
+              className="block aspect-video w-full object-cover" loading="lazy" decoding="async" />
+            <span className="reel-thumb-play" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 4 L19 12 L6 20 Z" /></svg>
+            </span>
+            <span className="reel-thumb-label">Play overview</span>
           </button>
         )}
       </section>
 
-      {/* Full reel — custom fullscreen player (lusion). No native controls: PLAY left,
-          scrubber centre, MUTE right; the video fills the screen and click-to-close,
-          with a circular × cursor over it. Always mounted (hidden, not display:none) so
-          the open click can start playback with audio. */}
+      {/* Full reel — accessible custom player. The video is CONTAINED (never cropped) on
+          black; an always-visible Close button, touch-legible controls (play · scrub ·
+          mute) with safe-area padding, a portrait rotate hint, and a focus trap. The
+          desktop × cursor is hidden on touch. Always mounted (hidden, not display:none)
+          so the open click can start playback with audio. */}
       <div
+        ref={dialogRef}
         className="reel-modal fixed inset-0 z-[100] bg-black"
+        role="dialog"
+        aria-modal="true"
+        aria-label="CodeCanvas overview reel"
         style={{ opacity: reelOpen ? 1 : 0, visibility: reelOpen ? 'visible' : 'hidden', pointerEvents: reelOpen ? 'auto' : 'none' }}
       >
         <video
@@ -304,7 +351,12 @@ export default function VideoPanel() {
           src={VIDEO}
           playsInline
           preload="none"
-          onClick={closeReel}
+          /* tap behaviour by device: touch → toggle play (no accidental close), fine
+             pointer → click-to-close (the × cursor signals it). Close button always works. */
+          onClick={() => {
+            if (window.matchMedia('(pointer: coarse)').matches) togglePlay()
+            else closeReel()
+          }}
           onMouseMove={(e) => {
             cursorTarget.current = { x: e.clientX, y: e.clientY }
             if (!cursorIn) setCursorIn(true)
@@ -313,10 +365,40 @@ export default function VideoPanel() {
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
           onTimeUpdate={(e) => setProgress(e.target.duration ? e.target.currentTime / e.target.duration : 0)}
-          className="reel-video h-full w-full object-cover"
+          className="reel-video h-full w-full object-contain"
         />
 
-        {/* Soft × blob that trails the mouse (transform driven by the rAF loop). */}
+        {/* Always-visible Close (safe-area aware). First focusable on open. */}
+        <button
+          ref={closeBtn}
+          type="button"
+          onClick={closeReel}
+          aria-label="Close video"
+          className="reel-close"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+            <path d="M5 5 L19 19 M19 5 L5 19" />
+          </svg>
+        </button>
+
+        {/* Portrait hint (CSS-shown only on portrait + touch; auto-hidden in landscape).
+            Non-blocking top banner — the reel keeps playing behind it. Dismissable. */}
+        {!hintDismissed && (
+          <div className="reel-hint" role="status">
+            <span className="reel-hint-icon" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="7" y="3" width="10" height="18" rx="2" />
+                <path d="M10.5 18.5h3" />
+              </svg>
+            </span>
+            <p className="reel-hint-text">Rotate your phone for the full experience</p>
+            <button type="button" className="reel-hint-dismiss" onClick={() => setHintDismissed(true)}>
+              Continue in portrait
+            </button>
+          </div>
+        )}
+
+        {/* Soft × blob that trails the mouse (desktop only — CSS hides it on touch). */}
         <div
           ref={cursorEl}
           className="reel-cursor pointer-events-none fixed left-0 top-0 z-[101] flex h-[78px] w-[78px] items-center justify-center rounded-full bg-white"
@@ -327,15 +409,13 @@ export default function VideoPanel() {
           </svg>
         </div>
 
-        {/* Bottom bar: PLAY · scrubber · MUTE. Its own pointer events; doesn't close. */}
-        <div
-          className="absolute inset-x-0 bottom-0 z-[102] flex items-center gap-6 px-8 pb-7 pt-16"
-          onMouseEnter={() => setCursorIn(false)}
-        >
+        {/* Bottom bar: PLAY · scrubber · MUTE. Touch-legible, safe-area padded; doesn't close. */}
+        <div className="reel-bar" onMouseEnter={() => setCursorIn(false)}>
           <button
             type="button"
             onClick={togglePlay}
-            className="shrink-0 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 transition-colors hover:text-white"
+            aria-label={playing ? 'Pause' : 'Play'}
+            className="reel-bar-btn shrink-0 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 transition-colors hover:text-white"
           >
             {playing ? 'Pause' : 'Play'}
           </button>
@@ -353,7 +433,8 @@ export default function VideoPanel() {
           <button
             type="button"
             onClick={toggleMute}
-            className="shrink-0 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 transition-colors hover:text-white"
+            aria-label={muted ? 'Unmute' : 'Mute'}
+            className="reel-bar-btn shrink-0 text-xs font-semibold uppercase tracking-[0.22em] text-white/90 transition-colors hover:text-white"
           >
             {muted ? 'Unmute' : 'Mute'}
           </button>

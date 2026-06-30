@@ -61,6 +61,34 @@ body {
   text-transform: uppercase;
   color: var(--color-muted);
 }
+/* X-Ray section eyebrows: higher contrast than the muted default (legible on paper),
+   with a cobalt leading number so the section index reads as brand wayfinding. */
+.xray-eyebrow { color: var(--color-ink-2); }
+
+/* Short evidence caption under each X-Ray stage (replaces the long technical
+   paragraphs — the honesty detail now lives in each section's body copy). */
+.s-cap {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--color-ink-2);
+}
+.s-cap-center { text-align: center; }
+
+/* ---- Editorial composition rhythm (fine-pointer desktop only) ----
+   Each X-Ray header sits differently so the five sections don't repeat the same
+   top-left block. Gated to ≥768px AND pointer:fine — coarse/touch (incl. tablets)
+   gets the natural single left column that matches the mobile choreography. */
+@media (min-width: 768px) and (pointer: fine) {
+  .s-head-right { text-align: right; }
+  .s-head-right > * { margin-left: auto; }
+  .s-head-right .s1-head { max-width: none; }
+  .s-head-shift { margin-left: 32%; max-width: 48ch; }
+  .s-head-center { text-align: center; margin-inline: auto; max-width: 64ch; }
+  .s-head-center > * { margin-inline: auto; }
+  /* S4 two balanced columns (title | explanation) — pointer-aware, so a coarse tablet
+     stays single column instead of Tailwind md:grid forcing two cols on touch. */
+  .s-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 3rem; align-items: end; }
+  .s-cols > p { margin-top: 0; }
+}
 
 /* ---- Soft light card ---- */
 .card {
@@ -141,6 +169,14 @@ body {
   animation: ai-shimmer 4s linear infinite;
 }
 
+/* On coarse/touch the WebGL video plane isn't mounted (it's hover-driven) and the
+   mobile tap-poster is shown instead — so hide the desktop GL canvas + its measuring
+   anchors (md:block in markup) so they don't reserve empty space on touch tablets. */
+@media (pointer: coarse) {
+  #video-panel-start, #video-panel-end-parent { display: none !important; }
+  canvas.fixed { display: none !important; }
+}
+
 /* PLAY REEL rails: a marquee where one row advances and the other recedes. */
 @keyframes marquee-fwd { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes marquee-rev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
@@ -163,6 +199,80 @@ body {
 }
 .reel-range::-moz-range-thumb {
   width: 12px; height: 12px; border-radius: 50%; background: #fff; border: none;
+}
+
+/* ---- Reel modal: accessible + touch additions ---- */
+/* Desktop elastic × cursor is hidden on touch devices. */
+@media (pointer: coarse) {
+  .reel-cursor { display: none !important; }
+  .reel-video { cursor: default; }
+}
+/* Always-visible Close (safe-area aware). First focusable on open. */
+.reel-close {
+  position: absolute; z-index: 103;
+  top: calc(env(safe-area-inset-top) + 14px);
+  right: calc(env(safe-area-inset-right) + 14px);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.25);
+  backdrop-filter: blur(6px); transition: background .2s, transform .2s;
+}
+.reel-close svg { width: 20px; height: 20px; }
+.reel-close:hover { background: rgba(255,255,255,.22); transform: scale(1.06); }
+.reel-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* Bottom control bar — touch-legible, safe-area padded; gradient for contrast over contained video. */
+.reel-bar {
+  position: absolute; inset-inline: 0; bottom: 0; z-index: 102;
+  display: flex; align-items: center; gap: clamp(12px, 3vw, 24px);
+  padding-left: calc(env(safe-area-inset-left) + 20px);
+  padding-right: calc(env(safe-area-inset-right) + 20px);
+  padding-top: 56px; padding-bottom: calc(env(safe-area-inset-bottom) + 18px);
+  background: linear-gradient(to top, rgba(0,0,0,.55), transparent);
+}
+.reel-bar-btn { min-height: 44px; display: inline-flex; align-items: center; padding-inline: 4px; }
+.reel-bar-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px; }
+@media (pointer: coarse) {
+  .reel-range { height: 4px; }
+  .reel-range::-webkit-slider-thumb { width: 18px; height: 18px; }
+  .reel-range::-moz-range-thumb { width: 18px; height: 18px; }
+}
+/* Portrait rotate hint — centred card, shown ONLY on portrait + touch; auto-hidden in landscape. */
+.reel-hint { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  .reel-hint {
+    display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+    position: absolute; z-index: 103; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(82vw, 320px); padding: 24px 22px; border-radius: 18px;
+    background: rgba(20,22,30,.82); border: 1px solid rgba(255,255,255,.16);
+    backdrop-filter: blur(10px); color: #fff;
+  }
+}
+.reel-hint-icon {
+  width: 40px; height: 40px; color: #cdd6ff;
+  animation: reel-rotate 2.6s ease-in-out infinite; transform-origin: 50% 50%;
+}
+.reel-hint-icon svg { width: 100%; height: 100%; }
+.reel-hint-text { margin: 0; font-family: var(--font-grotesk); font-size: 15px; line-height: 1.35; }
+.reel-hint-dismiss {
+  padding: 9px 16px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,.14); color: #fff; border: 0;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+}
+.reel-hint-dismiss:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+@keyframes reel-rotate { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+/* Mobile reel poster thumbnail: centred play badge + label. */
+.reel-thumb { position: relative; }
+.reel-thumb-play {
+  position: absolute; inset: 0; margin: auto; width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: rgba(255,255,255,.92); color: #0c0d10;
+  box-shadow: 0 10px 30px -8px rgba(0,0,0,.5);
+}
+.reel-thumb-play svg { width: 26px; height: 26px; margin-left: 3px; }
+.reel-thumb-label {
+  position: absolute; left: 12px; bottom: 12px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: #fff; background: rgba(13,15,20,.6); padding: 4px 9px; border-radius: 6px;
 }
 
 /* Menu dropdown pop-in (top-right origin). */
@@ -302,15 +412,14 @@ section[id], div[id] { scroll-margin-top: 96px; }
   padding: 6px 12px; background: #0d0f14;
   transform: translateX(calc((1 - var(--s2)) * 36px));
 }
-.s1-tonext {
-  margin-top: 18vh; opacity: var(--s2);
-  transform: translateY(calc((1 - var(--s2)) * 26px));
+/* S4→S5 bridge: a single cobalt hairline that carries the scanline grammar from
+   the last technical stage into the brand resolve (function: continuity, not decor). */
+.s-bridge {
+  display: block; width: 1.5px; height: clamp(56px, 9vh, 104px);
+  margin: 8vh auto -2vh; opacity: .8;
+  background: linear-gradient(180deg, rgba(47,61,245,0), #2f3df5 45%, rgba(47,61,245,.25));
 }
-.s1-tonext-rule {
-  display: block; width: 1.5px; height: 64px; margin: 0 0 26px;
-  background: linear-gradient(180deg, #2f3df5, rgba(47,61,245,0));
-}
-@media (max-width: 767px) {
+@media (max-width: 767px), (pointer: coarse) {
   .s1-frame { aspect-ratio: 4 / 3; border-radius: 22px; }
   .s1-box { left: 27%; top: 30%; width: 46%; height: 8%; }
   /* keep the honest "· index.html" visible; truncate only the long id */
@@ -322,7 +431,7 @@ section[id], div[id] { scroll-margin-top: 96px; }
 /* ---- X-Ray · S2: two views, one file — the file is REVEALED beside the canvas ----
    --open: canvas covers full frame (inherited from S1) then retracts left, the seam
    riding its edge, revealing index.html in the right half. --draw: connector. */
-#xray-s2 { --open: 0; --draw: 0; --s3: 0; }
+#xray-s2 { --open: 0; --draw: 0; --m: 0; } /* --m: mobile entry choreography */
 .s2-diptych {
   position: relative; width: 100%; aspect-ratio: 16 / 8.5;
   border-radius: 34px; overflow: hidden; background: var(--color-night);
@@ -365,21 +474,27 @@ section[id], div[id] { scroll-margin-top: 96px; }
   opacity: var(--open);
 }
 .s2-tag-l { left: 12px; } .s2-tag-r { right: 12px; }
-@media (max-width: 767px) {
-  /* Vertical editorial sequence: each pane zoomed to ITS evidence, both legible.
-     No horizontal retract (that's a desktop idea); ignore --open here. */
+@media (max-width: 767px), (pointer: coarse) {
+  /* Vertical editorial sequence, choreographed on entry by --m: the canvas appears,
+     then the horizontal seam draws, then the source. Reversible (scrub); reduced-motion
+     pins --m:1 (full static). Each pane zoomed to ITS evidence, both legible. */
   .s2-diptych { aspect-ratio: 3 / 4.4; }
   .s2-pane { left: 0 !important; right: 0 !important; width: 100% !important; }
-  .s2-canvas { top: 0; height: 48%; }
-  .s2-code { top: 52%; bottom: 0; height: auto; }
+  .s2-canvas { top: 0; height: 48%;
+    --p: clamp(0, var(--m) / 0.4, 1);
+    opacity: var(--p); transform: translateY(calc((1 - var(--p)) * 16px)); }
+  .s2-code { top: 52%; bottom: 0; height: auto;
+    --p: clamp(0, (var(--m) - 0.55) / 0.45, 1);
+    opacity: var(--p); transform: translateY(calc((1 - var(--p)) * 18px)); }
   .s2-canvas .s2-img { object-position: 50% 30%; transform: scale(1.55); }   /* the selected <h1> */
   /* On mobile the pane is landscape, so cover overflows HORIZONTALLY (Y is inert here);
      transform-origin Y 84% is what drops the zoom onto line 35 (.hero), with :root off-top. */
   .s2-code .s2-img { object-position: 10% 50%; transform: scale(2.4); transform-origin: 30% 84%; }
-  .s2-seam { left: 6%; right: 6%; top: 50%; bottom: auto; width: auto; height: 2px; transform: none;
+  .s2-seam { left: 6%; right: 6%; top: 50%; bottom: auto; width: auto; height: 2px;
+    transform: scaleX(clamp(0, (var(--m) - 0.35) / 0.25, 1)); transform-origin: 50% 50%;
     opacity: 1; background: linear-gradient(90deg, transparent, #2f3df5 50%, transparent); }
   .s2-connector, .s2-node { display: none; } /* the two zoomed crops + labels carry it on mobile */
-  .s2-tag { opacity: 1; }
+  .s2-tag { opacity: var(--m); }
   .s2-tag-l { top: 12px; bottom: auto; left: 12px; }
   .s2-tag-r { bottom: 12px; right: 12px; }
 }
@@ -387,8 +502,8 @@ section[id], div[id] { scroll-margin-top: 96px; }
 /* ---- X-Ray · S3: hand it to the agent — TWO real states of the SAME <h1>, NO causal wiring.
    The only continuous clip records a different element, so we make no causal claim and draw NO
    connector. --menu: Ask Copilot lights (left). --ctx: Claude's design context is marked (right).
-   --reply: the real panel crop pans down to reveal Claude's reply + bullets. --s4: teaser. */
-#xray-s3 { --menu: 0; --ctx: 0; --reply: 0; --s4: 0; }
+   --reply: the real panel crop pans down to reveal Claude's reply + bullets. */
+#xray-s3 { --menu: 0; --ctx: 0; --reply: 0; --m: 0; } /* --m: mobile entry choreography */
 .s3-stage {
   position: relative; width: 100%; aspect-ratio: 16 / 8.5;
   border-radius: 34px; overflow: hidden; background: var(--color-night);
@@ -433,17 +548,21 @@ section[id], div[id] { scroll-margin-top: 96px; }
 .s3-tag-l { left: 12px; }
 /* Right pane needs no tag: the panel's own "Claude" header and the caption below the stage
    already identify it, and any in-pane label sits on real reply text (incl. the localhost proof). */
-@media (max-width: 767px) {
+@media (max-width: 767px), (pointer: coarse) {
   /* Mobile = a legible vertical sequence: a cropped canvas band stacked above the FULL Claude
      panel shown at ~native width, so the whole real conversation (design context + reply +
      bullets) is readable. No fixed aspect box — panes flow and the panel sets its own height. */
   .s3-stage { aspect-ratio: auto; height: auto; }
   .s3-pane { position: relative; left: auto; right: auto; top: auto; bottom: auto; }
-  .s3-canvas { height: 300px; }
-  .s3-agent { height: auto; }
+  /* canvas/context band first, then the Claude panel rises in (--m) */
+  .s3-canvas { height: 300px; --p: clamp(0, var(--m) / 0.4, 1);
+    opacity: var(--p); transform: translateY(calc((1 - var(--p)) * 16px)); }
+  .s3-agent { height: auto; --p: clamp(0, (var(--m) - 0.4) / 0.6, 1);
+    opacity: var(--p); transform: translateY(calc((1 - var(--p)) * 22px)); }
   .s3-agent .s3-img { position: relative; inset: auto; width: 100%; height: auto; transform: none;
     object-fit: contain; object-position: center top; }
-  .s3-seam { top: 300px; bottom: auto; left: 6%; right: 6%; width: auto; height: 2px; transform: none;
+  .s3-seam { top: 300px; bottom: auto; left: 6%; right: 6%; width: auto; height: 2px;
+    transform: scaleX(clamp(0, (var(--m) - 0.3) / 0.25, 1)); transform-origin: 50% 50%;
     background: linear-gradient(90deg, transparent, #2f3df5 50%, transparent); }
   /* Inspector box would span the whole full-height panel here — drop it; context stays legible. */
   .s3-hl-ctx { display: none; }
@@ -457,7 +576,7 @@ section[id], div[id] { scroll-margin-top: 96px; }
    of frame (no jump). They crossfade (object-fit:contain; the dark pillarbox blends into the night stage);
    we make NO continuity claim. No video → no decode → start/morph/settle identical going up or down. No
    WebGL (reserved for S5). Box %s are first-pass from 1920×1032 — px-true retune (s3-hl-ctx precedent). */
-#xray-s4 { --proj: 0; --serve: 0; --zoom: 0; --morph: 0; --s5: 0; }
+#xray-s4 { --proj: 0; --serve: 0; --zoom: 0; --morph: 0; --m: 0; } /* --m: mobile entry choreography */
 .s4-stage {
   position: relative; width: 100%; aspect-ratio: 1920 / 1032;  /* IDE native ratio (cover, no crop) */
   border-radius: 34px; overflow: hidden; background: var(--color-night);
@@ -508,19 +627,21 @@ section[id], div[id] { scroll-margin-top: 96px; }
 .s4-stage[data-static] .s4-hl-serve,
 .s4-stage[data-static] .s4-tag { opacity: 1; }
 
-@media (max-width: 767px) {
-  /* Mobile = a legible vertical sequence (no pin/scrub), like S2/S3: the SAME local preview, desktop then
-     phone, each at full width. The wide IDE shot is illegible at 375px, so it's dropped — the headline +
-     body copy carry the local-first proof (localhost, loopback ::1, the files). */
-  .s4-stage { aspect-ratio: auto; height: auto; display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+@media (max-width: 767px), (pointer: coarse) {
+  /* Mobile = a short, reversible WIPE on ONE shared frame (no pin/scrub jank, no IDE shot —
+     it's illegible at 375px; the headline + body carry the localhost/loopback proof). The
+     desktop preview is the base; the phone wipes over it centre-out (--m), so two headlines
+     are never both fully visible. Contain = the previews are never illegibly cropped. */
+  .s4-stage { aspect-ratio: 5 / 4; height: auto; display: block; padding: 0; position: relative; }
   .s4-ide, .s4-hl, .s4-tag { display: none; }
   .s4-cv {
-    position: static; width: 100%; height: auto; border-radius: 16px;
-    opacity: 1 !important; clip-path: none !important; transform: none !important;
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+    background: var(--color-night); border-radius: inherit;
+    opacity: 1 !important; transform: none !important;
   }
-  .s4-cv-desktop { aspect-ratio: 986 / 680; }   /* reserve the box (no CLS) */
-  /* portrait box + cover so the centred phone fills the column legibly (04d is a landscape canvas crop) */
-  .s4-cv-phone { aspect-ratio: 10 / 14; object-fit: cover; object-position: center; }
+  .s4-cv-desktop { z-index: 1; clip-path: none !important; }
+  .s4-cv-phone { z-index: 2;
+    clip-path: inset(0 calc((1 - clamp(0, (var(--m) - 0.35) / 0.5, 1)) * 50%) 0 calc((1 - clamp(0, (var(--m) - 0.35) / 0.5, 1)) * 50%)) !important; }
 }
 
 /* ---- X-Ray · S5: the brand resolve — the CodeCanvas mark, structure ⇒ surface (WebGL) ----
@@ -560,6 +681,20 @@ section[id], div[id] { scroll-margin-top: 96px; }
 .s5-stage[data-static] .s5-scan,
 .s5-stage[data-static] .s5-tag { display: none; }
 
-@media (max-width: 767px) {
+/* Mobile / touch (no WebGL): a light 2D resolve on the poster — keyed on [data-mobile] so
+   it works at any width (coarse tablets included). The poster IS the metallic end state; it
+   emerges from a cobalt "structure" wash with a scan band as --rev advances. The in-stage
+   "WebGL" tag stays hidden (glReady never fires here) so nothing falsely claims live WebGL. */
+.s5-stage[data-mobile] .s5-canvas { display: none; }
+.s5-stage[data-mobile] .s5-poster {
+  opacity: 1 !important;
+  filter: saturate(calc(0.15 + 0.85 * var(--rev))) brightness(calc(0.82 + 0.18 * var(--rev)));
+}
+.s5-stage[data-mobile]::before {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: #2f3df5; mix-blend-mode: color; opacity: calc((1 - var(--rev)) * 0.8);
+}
+
+@media (max-width: 767px), (pointer: coarse) {
   .s5-stage { aspect-ratio: 1 / 1; }   /* the poster is square — give it a square box on mobile */
 }

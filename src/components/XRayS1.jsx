@@ -65,8 +65,8 @@ export default function XRayS1() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s1" className="relative px-[5vw] pt-[16vh] pb-[26vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7">
+    <section ref={section} id="xray-s1" className="relative px-[5vw] pt-[11vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
+      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
         {/* Section spine (graft 3 ← Two Hands): sticky mono wayfinding + non-color cue. */}
         <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
           <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
@@ -77,7 +77,7 @@ export default function XRayS1() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <p className="eyebrow mb-6">01 · Surface ⇄ Structure</p>
+          <p className="eyebrow xray-eyebrow mb-6">01 · Inspect the surface</p>
           <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
             <MaskLine shown={shown}>Every surface</MaskLine>
             <MaskLine shown={shown} delay="0.09s">is also a structure.</MaskLine>
@@ -113,22 +113,7 @@ export default function XRayS1() {
             <div className="s1-s2hint" aria-hidden><span className="s1-s2tab">index.html</span></div>
           </div>
 
-          <p className="mt-5 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-            REAL CAPTURE · codecanvas-demo — the &lt;h1&gt; "Ship your ideas faster" selected on the live canvas
-          </p>
-
-          {/* Start of the transition into S2 (not S2 itself): the structure we just
-              exposed flows toward the code view. Text stays readable (not aria-hidden). */}
-          <div className="s1-tonext">
-            <span className="s1-tonext-rule" aria-hidden />
-            <p className="eyebrow !text-[#2f3df5]">Next · S2</p>
-            <p className="mt-2 text-[clamp(1.7rem,3.4vw,2.9rem)] tracking-tight text-ink" style={{ fontFamily: 'var(--font-forum)' }}>
-              Two views. One file.
-            </p>
-            <p className="mt-2 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-              the same &lt;h1&gt; — on the canvas and in index.html
-            </p>
-          </div>
+          <p className="s-cap mt-5">LIVE CANVAS · selected &lt;h1&gt;</p>
         </div>
       </div>
     </section>

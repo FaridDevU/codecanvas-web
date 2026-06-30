@@ -30,10 +30,26 @@ export default function XRayS3() {
     if (!el || !stage.current) return
     const setv = (k, v) => el.style.setProperty(k, v)
 
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    if (reduced() || mobile) {
-      setv('--menu', '1'); setv('--ctx', '1'); setv('--reply', '0'); setv('--s4', '1'); setShown(true)
+    // "mobile" = not a fine-pointer desktop (narrow OR coarse/touch, incl. ≥768 tablets):
+    // pins require pointer:fine, coarse gets the non-pinned choreography.
+    const mobile = !window.matchMedia('(min-width: 768px) and (pointer: fine)').matches
+    if (reduced()) {
+      setv('--menu', '1'); setv('--ctx', '1'); setv('--reply', '0'); setv('--m', '1'); setShown(true)
       return
+    }
+    // Mobile: light, reversible entry choreography (no pin) — the canvas/context band
+    // appears, then the Claude panel rises in. Drives --m for the mobile CSS.
+    if (mobile) {
+      setv('--menu', '1'); setv('--ctx', '1'); setv('--reply', '0')
+      const ctx = gsap.context(() => {
+        ScrollTrigger.create({ trigger: el, start: 'top 80%', onEnter: () => setShown(true) })
+        const st = ScrollTrigger.create({
+          trigger: stage.current, start: 'top 85%', end: 'top 32%', scrub: true,
+          onUpdate: (s) => setv('--m', s.progress.toFixed(3)),
+        })
+        return () => st.kill()
+      }, el)
+      return () => ctx.revert()
     }
 
     const ctx = gsap.context(() => {
@@ -48,7 +64,6 @@ export default function XRayS3() {
           setv('--menu', clamp01(p / 0.18).toFixed(3))
           setv('--ctx', clamp01((p - 0.2) / 0.22).toFixed(3))
           setv('--reply', clamp01((p - 0.46) / 0.34).toFixed(3))
-          setv('--s4', clamp01((p - 0.9) / 0.1).toFixed(3))
         },
       })
       return () => st.kill()
@@ -57,8 +72,8 @@ export default function XRayS3() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s3" className="relative px-[5vw] pt-[20vh] pb-[26vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7">
+    <section ref={section} id="xray-s3" className="relative px-[5vw] pt-[10vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
+      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
         <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
           <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
             {SPINE.map((s, i) => (
@@ -68,20 +83,22 @@ export default function XRayS3() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <p className="eyebrow mb-6">03 · Surface ⇄ Structure</p>
-          <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-            <MaskLine shown={shown}>Hand it</MaskLine>
-            <MaskLine shown={shown} delay="0.09s">to the agent.</MaskLine>
-          </h2>
-          <p
-            className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
-            style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-          >
-            A selected element&apos;s menu offers <span className="font-medium text-ink">Ask Copilot</span>. And in
-            the CodeCanvas AI panel, <span className="font-medium text-ink">Claude</span> holds this
-            <code className="font-mono text-[.95em] text-ink"> &lt;h1&gt;</code>&apos;s real design context — its
-            tag and id, inline styles, and the project — with its reply below.
-          </p>
+          <div className="s-head s-head-shift">
+            <p className="eyebrow xray-eyebrow mb-6">03 · Context for the agent</p>
+            <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+              <MaskLine shown={shown}>Hand it</MaskLine>
+              <MaskLine shown={shown} delay="0.09s">to the agent.</MaskLine>
+            </h2>
+            <p
+              className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
+              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+            >
+              A selected element&apos;s menu offers <span className="font-medium text-ink">Ask Copilot</span>. And in
+              the CodeCanvas AI panel, <span className="font-medium text-ink">Claude</span> holds this
+              <code className="font-mono text-[.95em] text-ink"> &lt;h1&gt;</code>&apos;s real design context — its
+              tag and id, inline styles, and the project — with its reply below.
+            </p>
+          </div>
 
           <div ref={stage} className="s3-stage mt-12">
             <div className="s3-pane s3-canvas">
@@ -99,20 +116,7 @@ export default function XRayS3() {
             <div className="s3-seam" aria-hidden />
           </div>
 
-          <p className="mt-5 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-            REAL CAPTURES · codecanvas-demo — two states of the same &lt;h1&gt; (#odid-…9kJj4Z…): its canvas menu with Ask Copilot, and the Claude panel holding its design context and reply. Shown side by side, not as a wired sequence.
-          </p>
-
-          <div className="s1-tonext" style={{ opacity: 'var(--s4)', transform: 'translateY(calc((1 - var(--s4)) * 26px))' }}>
-            <span className="s1-tonext-rule" aria-hidden />
-            <p className="eyebrow !text-[#2f3df5]">Next · S4</p>
-            <p className="mt-2 text-[clamp(1.7rem,3.4vw,2.9rem)] tracking-tight text-ink" style={{ fontFamily: 'var(--font-forum)' }}>
-              On your machine.
-            </p>
-            <p className="mt-2 font-mono text-[11px] tracking-[0.14em] text-ink-2">
-              local-first — design and preview straight from localhost
-            </p>
-          </div>
+          <p className="s-cap mt-5">REAL STATES · canvas context + Claude panel</p>
         </div>
       </div>
     </section>
