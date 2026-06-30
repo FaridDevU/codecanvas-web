@@ -18,7 +18,6 @@ gsap.registerPlugin(ScrollTrigger)
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const SPINE = ['S1', 'S2', 'S3', 'S4', 'S5']
 const clamp01 = (n) => Math.max(0, Math.min(1, n))
 
 export default function XRayS4() {
@@ -81,39 +80,29 @@ export default function XRayS4() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s4" className="relative px-[5vw] pt-[10vh] pb-[6vh] md:pt-[14vh] md:pb-[8vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
-        <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
-          <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
-            {SPINE.map((s, i) => (
-              <span key={s} className={i === 3 ? 'font-bold text-ink' : 'text-muted/50'}>{s}</span>
-            ))}
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <div className="s-head s-cols">
-            <div>
-              <p className="eyebrow xray-eyebrow mb-6">04 · Local preview</p>
+    <section ref={section} id="xray-s4" className="relative pt-[clamp(2.5rem,7vh,5rem)] pb-[clamp(1.5rem,4vh,3rem)] font-grotesk">
+          <div className="s-head">
+            <p className="eyebrow xray-eyebrow s-eyebrow">04 · Local preview</p>
+            <div className="s-headrow">
               <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
                 <MaskLine shown={shown}>On your</MaskLine>
                 <MaskLine shown={shown} delay="0.09s">machine.</MaskLine>
               </h2>
+              <p
+                className="s-lead"
+                style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+              >
+                The project, its files, the canvas, and the live preview run on your machine — the terminal
+                logs every request to <span className="font-medium text-ink">loopback (::1)</span> returning
+                <span className="font-medium text-ink"> 200</span>, served from
+                <span className="font-medium text-ink"> localhost</span>. The same local preview re-renders from the
+                full-width canvas to an <span className="font-medium text-ink">iPhone 16 Pro Max</span> —
+                same local server, a different viewport.
+              </p>
             </div>
-            <p
-              className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
-              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-            >
-              The project, its files, the canvas, and the live preview run on your machine — the terminal
-              logs every request to <span className="font-medium text-ink">loopback (::1)</span> returning
-              <span className="font-medium text-ink"> 200</span>, served from
-              <span className="font-medium text-ink"> localhost</span>. The same local preview re-renders from the
-              full-width canvas to an <span className="font-medium text-ink">iPhone 16 Pro Max</span> —
-              same local server, a different viewport.
-            </p>
           </div>
 
-          <div ref={stage} className="s4-stage mt-12">
+          <div ref={stage} className="s4-stage mt-8 md:mt-14">
             {/* IDE scene — 04e (clean, bright frame of the local IDE: Code explorer with the project files +
                 loopback terminal, canvas visible, no occluding dropdown). It's the SAME source 04c is cropped
                 from, so the zoom into the canvas is continuous. Eager-loaded so the first beat is never blank. */}
@@ -135,11 +124,6 @@ export default function XRayS4() {
           </div>
 
           <p className="s-cap mt-5">LOCAL PREVIEW · ::1 → 200</p>
-
-          {/* S5 teaser intentionally omitted: S5 isn't built yet, so the phone stays the stable terminal
-              state to the end of the section — its exit is postponed until there's a real transition to S5. */}
-        </div>
-      </div>
     </section>
   )
 }

@@ -16,7 +16,6 @@ const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-const SPINE = ['S1', 'S2', 'S3', 'S4', 'S5']
 const clamp01 = (n) => Math.max(0, Math.min(1, n))
 
 export default function XRayS1() {
@@ -65,33 +64,26 @@ export default function XRayS1() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s1" className="relative px-[5vw] pt-[11vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
-        {/* Section spine (graft 3 ← Two Hands): sticky mono wayfinding + non-color cue. */}
-        <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
-          <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
-            {SPINE.map((s, i) => (
-              <span key={s} className={i === 0 ? 'font-bold text-ink' : 'text-muted/50'}>{s}</span>
-            ))}
+    <section ref={section} id="xray-s1" className="relative pt-[clamp(2.5rem,7vh,5rem)] pb-[clamp(3rem,8vh,6rem)] font-grotesk">
+          <div className="s-head">
+            <p className="eyebrow xray-eyebrow s-eyebrow">01 · Inspect the surface</p>
+            <div className="s-headrow">
+              <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+                <MaskLine shown={shown}>Every surface</MaskLine>
+                <MaskLine shown={shown} delay="0.09s">is also a structure.</MaskLine>
+              </h2>
+              <p
+                className="s-lead"
+                style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+              >
+                What you see on the canvas and what it is underneath — the selected element,
+                its identity, its file — are one object. Scroll to x-ray it.
+              </p>
+            </div>
           </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <p className="eyebrow xray-eyebrow mb-6">01 · Inspect the surface</p>
-          <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-            <MaskLine shown={shown}>Every surface</MaskLine>
-            <MaskLine shown={shown} delay="0.09s">is also a structure.</MaskLine>
-          </h2>
-          <p
-            className="mt-7 max-w-[48ch] text-[1.06rem] leading-relaxed text-ink-2"
-            style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-          >
-            What you see on the canvas and what it is underneath — the selected element,
-            its identity, its file — are one object. Scroll to x-ray it.
-          </p>
 
           {/* The stage: a real capture, peeled to its structure by the cobalt scanline. */}
-          <div ref={frame} className="s1-frame mt-12">
+          <div ref={frame} className="s1-frame mt-8 md:mt-14">
             <img
               src="/media/03-canvas-app-open.png"
               alt="CodeCanvas editing the codecanvas-demo project on the live canvas"
@@ -114,8 +106,6 @@ export default function XRayS1() {
           </div>
 
           <p className="s-cap mt-5">LIVE CANVAS · selected &lt;h1&gt;</p>
-        </div>
-      </div>
     </section>
   )
 }

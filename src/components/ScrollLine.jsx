@@ -22,13 +22,13 @@ gsap.registerPlugin(ScrollTrigger)
 // the line lives there as a gentle gutter weave — Lusion's edge thread, never a
 // slash across a headline. y stays monotonic so the scroll-draw sampling holds.
 function buildPath(w, h) {
-  // Stay INSIDE the page's 5vw padding (every section uses px-[5vw]) so the line is
-  // always in the gutter, left of all text/stages, on every viewport.
-  const gutter = Math.max(14, w * 0.04)
-  const base = gutter * 0.35
-  const amp = gutter * 0.5
-  const xs = [base + amp, base, base + amp, base, base + amp, base]
-  const ys = [-60, h * 0.2, h * 0.4, h * 0.62, h * 0.82, h + 60]
+  // Wide organic weave across the FULL page (Lusion-style): it snakes side to side as
+  // it descends, sitting at z-1 BEHIND every component — the opaque stages occlude it,
+  // so it reads as an ambient ribbon threading the negative space between sections.
+  const m = Math.max(70, w * 0.08)
+  const L = m, R = w - m
+  const xs = [R - w * 0.05, L + w * 0.03, R, L + w * 0.10, R - w * 0.04, L + w * 0.06]
+  const ys = [-60, h * 0.17, h * 0.39, h * 0.60, h * 0.81, h + 60]
   let d = `M${xs[0]},${ys[0]}`
   for (let i = 1; i < xs.length; i++) {
     const dy = ys[i] - ys[i - 1]
@@ -41,10 +41,16 @@ export default function ScrollLine() {
   const path = useRef(null)
   const [dims, setDims] = useState({ w: 1440, h: 3000 })
 
-  // Keep the SVG the size of the whole document.
+  // Size the SVG to the STORY (the <main>), NOT the whole document — the footer lives
+  // outside <main>. Using offsetHeight (flow height, excludes this absolute SVG) avoids
+  // the circular "SVG height = scrollHeight" feedback that let the page scroll past the
+  // footer; the ribbon now ends cleanly at the footer boundary.
   useLayoutEffect(() => {
-    const measure = () =>
-      setDims({ w: window.innerWidth, h: document.documentElement.scrollHeight })
+    const measure = () => {
+      const main = document.querySelector('main')
+      const h = main ? main.offsetHeight : document.documentElement.scrollHeight
+      setDims({ w: window.innerWidth, h })
+    }
     measure()
     window.addEventListener('resize', measure)
     // Re-measure after pins/fonts settle (the FW horizontal pin adds page height).

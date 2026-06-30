@@ -13,7 +13,6 @@ gsap.registerPlugin(ScrollTrigger)
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const SPINE = ['S1', 'S2', 'S3', 'S4', 'S5']
 const clamp01 = (n) => Math.max(0, Math.min(1, n))
 
 export default function XRayS2() {
@@ -106,34 +105,26 @@ export default function XRayS2() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s2" className="relative px-[5vw] pt-[10vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
-        <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
-          <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
-            {SPINE.map((s, i) => (
-              <span key={s} className={i === 1 ? 'font-bold text-ink' : 'text-muted/50'}>{s}</span>
-            ))}
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <div className="s-head s-head-right">
-            <p className="eyebrow xray-eyebrow mb-6">02 · Canvas ⇄ Source</p>
-            <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-              <MaskLine shown={shown}>Two views.</MaskLine>
-              <MaskLine shown={shown} delay="0.09s">One file.</MaskLine>
-            </h2>
-            <p
-              className="mt-7 max-w-[48ch] text-[1.06rem] leading-relaxed text-ink-2"
-              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-            >
-              The <code className="font-mono text-[.95em] text-ink">&lt;h1&gt;</code> you select on the canvas is
-              rendered from the same <code className="font-mono text-[.95em] text-ink">index.html</code> open beside
-              it — one source, two ways to see it.
-            </p>
+    <section ref={section} id="xray-s2" className="relative pt-[clamp(2.5rem,7vh,5rem)] pb-[clamp(3rem,8vh,6rem)] font-grotesk">
+          <div className="s-head">
+            <p className="eyebrow xray-eyebrow s-eyebrow">02 · Canvas ⇄ Source</p>
+            <div className="s-headrow">
+              <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+                <MaskLine shown={shown}>Two views.</MaskLine>
+                <MaskLine shown={shown} delay="0.09s">One file.</MaskLine>
+              </h2>
+              <p
+                className="s-lead"
+                style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+              >
+                The <code className="font-mono text-[.95em] text-ink">&lt;h1&gt;</code> you select on the canvas is
+                rendered from the same <code className="font-mono text-[.95em] text-ink">index.html</code> open beside
+                it — one source, two ways to see it.
+              </p>
+            </div>
           </div>
 
-          <div ref={dip} className="s2-diptych mt-12">
+          <div ref={dip} className="s2-diptych mt-8 md:mt-14">
             <div className="s2-pane s2-canvas">
               <img src="/media/07-ai-chat-element-context.png" alt="The <h1> selected on the CodeCanvas live canvas" className="s2-img" loading="lazy" decoding="async" />
               <span className="s2-tag s2-tag-l">CANVAS · design</span>
@@ -152,8 +143,6 @@ export default function XRayS2() {
           </div>
 
           <p className="s-cap mt-5">CANVAS + INDEX.HTML · one project</p>
-        </div>
-      </div>
     </section>
   )
 }

@@ -63,12 +63,17 @@ export default function VideoPanel() {
   // downloads/decodes overview.mp4 for a hidden element (audit fix).
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
-    // Touch/coarse (incl. ≥768 tablets) get the tap-to-play poster, not the desktop
-    // WebGL plane whose play lockup is hover-only. Matches the X-Ray coarse gating.
-    const mq = window.matchMedia('(max-width: 767px), (pointer: coarse)')
-    const sync = () => setIsMobile(mq.matches)
-    sync(); mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
+    // Decide tap-poster vs desktop WebGL plane by DEVICE CAPABILITY, not the primary
+    // pointer: `(pointer: coarse)` flips on hybrid laptops (touch + mouse) as the user
+    // switches input, which made the desktop reel flicker on/off. `any-pointer: fine`
+    // ("a mouse exists") is stable. Poster only when narrow OR there's no mouse at all.
+    const mqW = window.matchMedia('(max-width: 767px)')
+    const mqP = window.matchMedia('(any-pointer: fine)')
+    const sync = () => setIsMobile(mqW.matches || !mqP.matches)
+    sync()
+    mqW.addEventListener('change', sync)
+    mqP.addEventListener('change', sync)
+    return () => { mqW.removeEventListener('change', sync); mqP.removeEventListener('change', sync) }
   }, [])
   // Custom player state (lusion-style fullscreen reel — no native controls).
   const [playing, setPlaying] = useState(false)
@@ -187,7 +192,7 @@ export default function VideoPanel() {
 
   // Mount the WebGL panel (desktop only — needs the anchor layout + is heavy).
   useEffect(() => {
-    if (reduced() || !window.matchMedia('(min-width: 768px) and (pointer: fine)').matches) return
+    if (reduced() || !window.matchMedia('(min-width: 768px) and (any-pointer: fine)').matches) return
     if (!canvas.current) return
     // wait a tick so fonts/layout settle before measuring the anchors
     let dispose
@@ -253,8 +258,10 @@ export default function VideoPanel() {
           </div>
         </div>
 
-        {/* GL anchors (desktop). Empty — the shader measures these rects.
-            START = small, left, 16:9. END = full width, 70vh, centred. */}
+        {/* GL anchors + plane overlay — rendered only when a mouse exists (desktop), so
+            mouse-less tablets/phones don't reserve empty space; they get the tap-poster
+            below instead. Gated on the stable isMobile (any-pointer based, no flicker). */}
+        {!isMobile && (<>
         <div id="video-panel-start" className="hidden aspect-video w-1/2 md:block" />
         {/* Reserve box kept SHORT (h-25vh) so there's little dead scroll after the
             video — the 70vh video height is now fixed on #video-panel-end itself, not
@@ -316,6 +323,7 @@ export default function VideoPanel() {
             </div>
           </div>
         </div>
+        </>)}
 
         {/* Mobile entry to the reel: a legible poster still + play affordance — NOT an
             autoplaying, illegible object-cover video. Tap → full reel with sound. The

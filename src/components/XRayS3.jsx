@@ -17,7 +17,6 @@ gsap.registerPlugin(ScrollTrigger)
 const reduced = () =>
   typeof window !== 'undefined' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches
-const SPINE = ['S1', 'S2', 'S3', 'S4', 'S5']
 const clamp01 = (n) => Math.max(0, Math.min(1, n))
 
 export default function XRayS3() {
@@ -72,35 +71,27 @@ export default function XRayS3() {
   }, [])
 
   return (
-    <section ref={section} id="xray-s3" className="relative px-[5vw] pt-[10vh] pb-[15vh] md:pt-[14vh] md:pb-[19vh] font-grotesk">
-      <div className="relative mx-auto flex max-w-[1180px] gap-7 2xl:max-w-[1320px]">
-        <aside aria-hidden className="hidden w-8 shrink-0 lg:block">
-          <div className="sticky top-[46vh] flex flex-col gap-2.5 font-mono text-[11px] tracking-[0.22em]">
-            {SPINE.map((s, i) => (
-              <span key={s} className={i === 2 ? 'font-bold text-ink' : 'text-muted/50'}>{s}</span>
-            ))}
-          </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <div className="s-head s-head-shift">
-            <p className="eyebrow xray-eyebrow mb-6">03 · Context for the agent</p>
-            <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
-              <MaskLine shown={shown}>Hand it</MaskLine>
-              <MaskLine shown={shown} delay="0.09s">to the agent.</MaskLine>
-            </h2>
-            <p
-              className="mt-7 max-w-[52ch] text-[1.06rem] leading-relaxed text-ink-2"
-              style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
-            >
-              A selected element&apos;s menu offers <span className="font-medium text-ink">Ask Copilot</span>. And in
-              the CodeCanvas AI panel, <span className="font-medium text-ink">Claude</span> holds this
-              <code className="font-mono text-[.95em] text-ink"> &lt;h1&gt;</code>&apos;s real design context — its
-              tag and id, inline styles, and the project — with its reply below.
-            </p>
+    <section ref={section} id="xray-s3" className="relative pt-[clamp(2.5rem,7vh,5rem)] pb-[clamp(3rem,8vh,6rem)] font-grotesk">
+          <div className="s-head">
+            <p className="eyebrow xray-eyebrow s-eyebrow">03 · Context for the agent</p>
+            <div className="s-headrow">
+              <h2 className="s1-head" style={{ fontFamily: 'var(--font-forum)' }}>
+                <MaskLine shown={shown}>Hand it</MaskLine>
+                <MaskLine shown={shown} delay="0.09s">to the agent.</MaskLine>
+              </h2>
+              <p
+                className="s-lead"
+                style={{ opacity: shown ? 1 : 0, transform: shown ? 'none' : 'translateY(14px)', transition: 'opacity .7s ease .2s, transform .7s ease .2s' }}
+              >
+                A selected element&apos;s menu offers <span className="font-medium text-ink">Ask Copilot</span>. And in
+                the CodeCanvas AI panel, <span className="font-medium text-ink">Claude</span> holds this
+                <code className="font-mono text-[.95em] text-ink"> &lt;h1&gt;</code>&apos;s real design context — its
+                tag and id, inline styles, and the project — with its reply below.
+              </p>
+            </div>
           </div>
 
-          <div ref={stage} className="s3-stage mt-12">
+          <div ref={stage} className="s3-stage mt-8 md:mt-14">
             <div className="s3-pane s3-canvas">
               {/* selección (07, no menu) cross-fades to the real menu (07a) — two aligned
                   captures of the SAME session; the menu just appears, no artificial box. */}
@@ -117,8 +108,6 @@ export default function XRayS3() {
           </div>
 
           <p className="s-cap mt-5">REAL STATES · canvas context + Claude panel</p>
-        </div>
-      </div>
     </section>
   )
 }

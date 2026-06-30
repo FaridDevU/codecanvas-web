@@ -71,23 +71,22 @@ body {
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--color-ink-2);
 }
-.s-cap-center { text-align: center; }
 
-/* ---- Editorial composition rhythm (fine-pointer desktop only) ----
-   Each X-Ray header sits differently so the five sections don't repeat the same
-   top-left block. Gated to ≥768px AND pointer:fine — coarse/touch (incl. tablets)
-   gets the natural single left column that matches the mobile choreography. */
+/* ---- Consistent editorial header (S1–S5) ----
+   One professional system for every section: eyebrow on top, then a row with the
+   title (~7 cols) left and the lead paragraph (~5 cols) right, then the full-width
+   stage below. Variety comes from the components/animations, not text placement. */
+.s-eyebrow { margin-bottom: 16px; }
+.s-lead {
+  margin-top: 1.25rem; max-width: 56ch;
+  font-size: 1.06rem; line-height: 1.6; color: var(--color-ink-2);
+}
+/* Two-column header row only on fine-pointer desktop ≥768; coarse/touch + narrow
+   keep the natural single column (eyebrow → title → lead → stage), matching the
+   non-pinned mobile choreography. */
 @media (min-width: 768px) and (pointer: fine) {
-  .s-head-right { text-align: right; }
-  .s-head-right > * { margin-left: auto; }
-  .s-head-right .s1-head { max-width: none; }
-  .s-head-shift { margin-left: 32%; max-width: 48ch; }
-  .s-head-center { text-align: center; margin-inline: auto; max-width: 64ch; }
-  .s-head-center > * { margin-inline: auto; }
-  /* S4 two balanced columns (title | explanation) — pointer-aware, so a coarse tablet
-     stays single column instead of Tailwind md:grid forcing two cols on touch. */
-  .s-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 3rem; align-items: end; }
-  .s-cols > p { margin-top: 0; }
+  .s-headrow { display: grid; grid-template-columns: 7fr 5fr; column-gap: clamp(2rem, 4vw, 3.5rem); align-items: end; }
+  .s-lead { margin-top: 0; max-width: 52ch; }
 }
 
 /* ---- Soft light card ---- */
@@ -167,14 +166,6 @@ body {
   background-image: linear-gradient(115deg, #8fb0ff, #2f4dff, #5566ff, #2f4dff, #8fb0ff);
   background-size: 200% 100%;
   animation: ai-shimmer 4s linear infinite;
-}
-
-/* On coarse/touch the WebGL video plane isn't mounted (it's hover-driven) and the
-   mobile tap-poster is shown instead — so hide the desktop GL canvas + its measuring
-   anchors (md:block in markup) so they don't reserve empty space on touch tablets. */
-@media (pointer: coarse) {
-  #video-panel-start, #video-panel-end-parent { display: none !important; }
-  canvas.fixed { display: none !important; }
 }
 
 /* PLAY REEL rails: a marquee where one row advances and the other recedes. */
@@ -415,8 +406,8 @@ section[id], div[id] { scroll-margin-top: 96px; }
 /* S4→S5 bridge: a single cobalt hairline that carries the scanline grammar from
    the last technical stage into the brand resolve (function: continuity, not decor). */
 .s-bridge {
-  display: block; width: 1.5px; height: clamp(56px, 9vh, 104px);
-  margin: 8vh auto -2vh; opacity: .8;
+  display: block; width: 1.5px; height: clamp(48px, 7vh, 88px);
+  margin: clamp(1.5rem, 4vh, 3rem) auto 0; opacity: .8;
   background: linear-gradient(180deg, rgba(47,61,245,0), #2f3df5 45%, rgba(47,61,245,.25));
 }
 @media (max-width: 767px), (pointer: coarse) {
