@@ -52,6 +52,10 @@ class X {
   #postprocessing: any;
   #resizeObserver?: ResizeObserver;
   #intersectionObserver?: IntersectionObserver;
+  // Bind once so add/removeEventListener share the SAME reference (else the cleanup
+  // removed a fresh .bind(this) that never matched — a real listener leak).
+  #onResizeBound!: () => void;
+  #onVisBound!: () => void;
   #resizeTimer?: number;
   #animationFrameId: number = 0;
   #timer: Timer = new Timer();
@@ -125,10 +129,12 @@ class X {
   }
 
   #initObservers() {
+    this.#onResizeBound = this.#onResize.bind(this);
+    this.#onVisBound = this.#onVisibilityChange.bind(this);
     if (!(this.#config.size instanceof Object)) {
-      window.addEventListener('resize', this.#onResize.bind(this));
+      window.addEventListener('resize', this.#onResizeBound);
       if (this.#config.size === 'parent' && this.canvas.parentNode) {
-        this.#resizeObserver = new ResizeObserver(this.#onResize.bind(this));
+        this.#resizeObserver = new ResizeObserver(this.#onResizeBound);
         this.#resizeObserver.observe(this.canvas.parentNode as Element);
       }
     }
@@ -138,7 +144,7 @@ class X {
       threshold: 0
     });
     this.#intersectionObserver.observe(this.canvas);
-    document.addEventListener('visibilitychange', this.#onVisibilityChange.bind(this));
+    document.addEventListener('visibilitychange', this.#onVisBound);
   }
 
   #onResize() {
@@ -286,10 +292,10 @@ class X {
   }
 
   #onResizeCleanup() {
-    window.removeEventListener('resize', this.#onResize.bind(this));
+    window.removeEventListener('resize', this.#onResizeBound);
     this.#resizeObserver?.disconnect();
     this.#intersectionObserver?.disconnect();
-    document.removeEventListener('visibilitychange', this.#onVisibilityChange.bind(this));
+    document.removeEventListener('visibilitychange', this.#onVisBound);
   }
 }
 
@@ -793,6 +799,7 @@ function createBallpit(canvas: HTMLCanvasElement, config: any = {}): CreateBallp
   threeInstance.camera.position.set(0, 0, 20);
   threeInstance.camera.lookAt(0, 0, 0);
   threeInstance.cameraMaxAspect = 1.5;
+  threeInstance.maxPixelRatio = 2; // perf budget: clamp DPR (lib already forces mobile down)
   threeInstance.resize();
   initialize(config);
   const raycaster = new Raycaster();
@@ -863,11 +870,20 @@ const Ballpit: React.FC<BallpitProps> = ({ className = '', followCursor = true, 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    // a11y: under prefers-reduced-motion, never start the WebGL physics sim. The
+    // dark stage + cobalt glow behind this canvas remain as the static fallback.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    spheresInstanceRef.current = createBallpit(canvas, {
-      followCursor,
-      ...props
-    });
+    // Guard WebGL init: without it (or on context-creation failure) keep the dark
+    // stage + glow as the static fallback instead of crashing the React tree.
+    try {
+      spheresInstanceRef.current = createBallpit(canvas, {
+        followCursor,
+        ...props
+      });
+    } catch (e) {
+      console.warn('Ballpit: WebGL unavailable, using static stage.', e);
+    }
 
     return () => {
       if (spheresInstanceRef.current) {

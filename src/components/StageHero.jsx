@@ -74,9 +74,13 @@ export default function StageHero() {
           className={`pointer-events-none absolute inset-0 bg-paper/70 shadow-[0_1px_0_rgba(12,13,16,.06)] backdrop-blur-md transition-opacity duration-300 ${scrolled ? 'opacity-100' : 'opacity-0'}`}
         />
         <a
-          href="#"
-          className="pointer-events-auto italic text-ink"
-          style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(2.2rem, 2.8vw, 3.9rem)', lineHeight: 1.15, paddingBlock: '0.06em' }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) } }}
+          tabIndex={0}
+          role="button"
+          aria-label="CodeCanvas AI — back to top"
+          className="pointer-events-auto cursor-pointer italic text-ink outline-offset-4"
+          style={{ fontFamily: 'var(--font-script)', fontSize: 'clamp(1.5rem, 5vw, 3.9rem)', lineHeight: 1.15, paddingBlock: '0.06em' }}
         >
           CodeCanvas{' '}
           <span
@@ -87,22 +91,24 @@ export default function StageHero() {
           </span>
         </a>
 
-        <div ref={menuRef} className="pointer-events-auto relative flex items-center gap-2">
-          <button className="btn-ai hidden h-11 w-11 items-center justify-center rounded-full border border-line text-ink transition-colors sm:flex" aria-label="Sound">
-            <svg width="22" height="11" viewBox="0 0 24 12" fill="none" aria-hidden="true">
-              <path
-                className="snake-wave"
-                d="M-16 6 q 2 -5 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0 t 4 0"
-                stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-          {/* ponytail: no repo yet — set the real URL here when it exists */}
-          <a href="#" className="btn btn-dark btn-ai h-11 px-5">Star on GitHub</a>
+        <div ref={menuRef} className="pointer-events-auto relative flex items-center gap-2 max-sm:gap-1.5">
+          {/* Star on GitHub → the real repo. Hidden on mobile via a wrapper (the
+              un-layered .btn rule beats Tailwind display utilities, so hiding must
+              happen on a non-.btn element). */}
+          <div className="hidden sm:block">
+            <a
+              href="https://github.com/FaridDevU/CodeCanvas-AI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-dark btn-ai h-11 px-5"
+            >
+              Star on GitHub
+            </a>
+          </div>
           <button
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
-            className="btn btn-menu group h-11 px-5"
+            className="btn btn-menu group h-11 px-5 max-sm:h-9 max-sm:px-3 max-sm:text-[13px]"
           >
             {menuOpen ? 'Close' : 'Menu'}
             <span className="relative ml-1 inline-flex h-4 w-4 items-center justify-center">
@@ -133,30 +139,13 @@ export default function StageHero() {
                 ))}
               </nav>
 
-              <div className="card px-6 py-6">
-                <p className="display text-[28px] leading-[1.05]">Subscribe to<br />our updates</p>
-                <form
-                  onSubmit={(e) => e.preventDefault()}
-                  className="mt-5 flex items-center gap-2 rounded-full bg-[#eef0fb] p-1.5 pl-5"
-                >
-                  <input
-                    type="email"
-                    placeholder="Your email"
-                    className="min-w-0 flex-1 bg-transparent text-sm text-ink-2 outline-none placeholder:text-muted"
-                  />
-                  <button
-                    type="submit"
-                    aria-label="Subscribe"
-                    className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-white text-lg text-ink transition-transform hover:translate-x-0.5"
-                  >
-                    →
-                  </button>
-                </form>
-              </div>
-
+              {/* Subscribe/email-capture card removed — forbidden SaaS pattern for an
+                  open-source project page. Menu "GitHub" → the author's profile
+                  (the header "Star on GitHub" goes to the repo itself). */}
               <a
-                href="#"
-                onClick={() => setMenuOpen(false)}
+                href="https://github.com/FaridDevU"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-dark btn-ai flex items-center justify-between !rounded-[18px] px-5 py-4 text-base"
               >
                 <span className="flex items-center gap-3"><span className="text-lg">★</span> GitHub</span>
@@ -171,7 +160,7 @@ export default function StageHero() {
           nav's row so the stage box keeps its position under the fixed bar. */}
       <div className="flex min-h-[2.75rem] items-start">
         <h1
-          className="mx-auto hidden flex-1 px-4 text-center tracking-tight text-ink sm:block"
+          className="mx-auto hidden flex-1 px-4 text-center tracking-tight text-ink lg:block"
           style={{ fontFamily: 'var(--font-forum)', fontSize: 'clamp(1.4rem, 2.2vw, 3rem)', lineHeight: 1.35 }}
         >
           A local-first design IDE<br />
@@ -182,7 +171,7 @@ export default function StageHero() {
 
       {/* Headline on small screens (stacks under the bar) */}
       <h1
-        className="mt-5 text-[1.35rem] leading-snug tracking-tight text-ink sm:hidden"
+        className="mt-5 text-[1.35rem] leading-snug tracking-tight text-ink lg:hidden"
         style={{ fontFamily: 'var(--font-forum)' }}
       >
         A local-first design IDE<br />

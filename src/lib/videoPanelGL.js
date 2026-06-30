@@ -143,7 +143,13 @@ export function mountVideoPanelGL(canvas, videoSrc, opts = {}) {
   const START_ID = 'video-panel-start'
   const END_ID = 'video-panel-end'
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+  let renderer
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+  } catch (e) {
+    console.warn('videoPanelGL: WebGL unavailable, skipping plane.', e)
+    return () => {}
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setSize(window.innerWidth, window.innerHeight)
 
@@ -276,12 +282,27 @@ export function mountVideoPanelGL(canvas, videoSrc, opts = {}) {
   let velSmooth = 0
 
   onScroll()
-  renderer.setAnimationLoop(() => {
+  const renderLoop = () => {
     velTarget *= 0.9
     velSmooth += (velTarget - velSmooth) * 0.1
     uniforms.uVelocity.value = velSmooth
     renderer.render(scene, camera)
-  })
+  }
+  let looping = false
+  const startLoop = () => { if (!looping && !disposed) { looping = true; renderer.setAnimationLoop(renderLoop) } }
+  const stopLoop = () => { if (looping) { looping = false; renderer.setAnimationLoop(null) } }
+  // Start PAUSED. The IntersectionObserver below starts the loop only while the
+  // panel is on-screen — so the hero (Ballpit) and this plane never render at once,
+  // and the loop no longer runs for the whole page lifetime (audit fix).
+  const visObserver = new IntersectionObserver(
+    ([e]) => {
+      if (e.isIntersecting) { startLoop(); video.play().catch(() => {}) }
+      else { stopLoop(); video.pause() }
+    },
+    { rootMargin: '140px' },
+  )
+  const visTarget = document.getElementById('video-panel-section')
+  if (visTarget) visObserver.observe(visTarget)
 
   // Route scroll through ScrollTrigger's single rAF (no extra window 'scroll'
   // listener). onScroll keeps the morph/overlay math identical; getVelocity only
@@ -308,6 +329,7 @@ export function mountVideoPanelGL(canvas, videoSrc, opts = {}) {
   return () => {
     disposed = true
     ro.disconnect()
+    visObserver.disconnect()
     st.kill()
     renderer.setAnimationLoop(null)
     window.removeEventListener('resize', onResize)

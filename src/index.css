@@ -85,6 +85,8 @@ body {
 .btn-light:hover { border-color: var(--color-ink); transform: translateY(-2px); }
 .btn-accent { background: var(--color-accent); color: #fff; }
 .btn-accent:hover { background: var(--color-accent-hi); transform: translateY(-2px); box-shadow: 0 14px 30px -12px rgba(47,107,255,.6); }
+/* Gated (no real URL yet) controls: visibly non-interactive, not a live CTA look-alike. */
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
 /* pill chip */
 .chip {
@@ -243,4 +245,321 @@ section[id], div[id] { scroll-margin-top: 96px; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+/* ---- X-Ray · S1: surface ⇄ structure peel (CSS/SVG, no WebGL) ----
+   New section accent uses the repo cobalt #2f3df5 (not the hero/video, which are
+   untouched). Driven by --rev/--sel/--s2 set from a scrubbed ScrollTrigger. */
+#xray-s1 { --rev: 0; --sel: 0; --s2: 0; } /* set from JS; vars inherit to descendants */
+.s1-head {
+  font-size: clamp(2.4rem, 6vw, 5.4rem); line-height: 0.98;
+  letter-spacing: -0.02em; color: var(--color-ink);
+}
+.s1-frame {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 34px; overflow: hidden; background: var(--color-night);
+  box-shadow: 0 1px 2px rgba(12,13,16,.06), 0 50px 90px -55px rgba(12,13,16,.5);
+}
+.s1-surface, .s1-structure-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s1-structure { position: absolute; inset: 0; clip-path: inset(0 0 calc((1 - var(--rev)) * 100%) 0); }
+/* The revealed half is a cobalt BLUEPRINT of the same real pixels — a genuinely
+   different structural rendering, not a wash: grayscale the capture, then map it
+   to the cobalt accent so surface→structure reads as page→schematic. */
+.s1-structure-img { filter: grayscale(1) brightness(1.14) contrast(1.24); }
+.s1-tint { position: absolute; inset: 0; background: #2f3df5; mix-blend-mode: color; opacity: .62; }
+.s1-tint::after { content: ''; position: absolute; inset: 0; background: rgba(8,10,24,.28); }
+.s1-box {
+  position: absolute; left: 40.5%; top: 34%; width: 23%; height: 7%;
+  border: 1.5px solid #2f3df5; opacity: var(--sel);
+  box-shadow: 0 0 0 1px rgba(47,61,245,.3), 0 0 22px rgba(47,61,245,.5);
+}
+.s1-corner { position: absolute; width: 9px; height: 9px; border: 2px solid #2f3df5; }
+.s1-corner.tl { left: -3px; top: -3px; border-right: 0; border-bottom: 0; }
+.s1-corner.tr { right: -3px; top: -3px; border-left: 0; border-bottom: 0; }
+.s1-corner.bl { left: -3px; bottom: -3px; border-right: 0; border-top: 0; }
+.s1-corner.br { right: -3px; bottom: -3px; border-left: 0; border-top: 0; }
+.s1-label {
+  position: absolute; left: -1px; top: -28px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; color: #dbe2ff;
+  background: rgba(13,15,20,.82); padding: 3px 8px; border-radius: 6px;
+}
+.s1-label-id { display: inline-block; vertical-align: bottom; }
+.s1-scan {
+  position: absolute; left: 0; right: 0; top: calc(var(--rev) * 100%); height: 2px;
+  background: linear-gradient(90deg, transparent, #2f3df5 14%, #8fb0ff 50%, #2f3df5 86%, transparent);
+  box-shadow: 0 0 18px 2px rgba(47,61,245,.6);
+  opacity: calc(0.22 + 0.78 * var(--sel));
+}
+.s1-s2hint { position: absolute; top: 0; bottom: 0; right: 0; width: 130px; pointer-events: none; opacity: var(--s2); }
+.s1-s2hint::before {
+  content: ''; position: absolute; top: 8%; bottom: 8%; right: 0; width: 1.5px;
+  background: #2f3df5; box-shadow: 0 0 12px rgba(47,61,245,.6);
+}
+.s1-s2tab {
+  position: absolute; top: 18px; right: 0;
+  font-family: var(--font-mono); font-size: 11px; color: #aab4cf;
+  border: 1px solid #232733; border-right: 0; border-radius: 8px 0 0 8px;
+  padding: 6px 12px; background: #0d0f14;
+  transform: translateX(calc((1 - var(--s2)) * 36px));
+}
+.s1-tonext {
+  margin-top: 18vh; opacity: var(--s2);
+  transform: translateY(calc((1 - var(--s2)) * 26px));
+}
+.s1-tonext-rule {
+  display: block; width: 1.5px; height: 64px; margin: 0 0 26px;
+  background: linear-gradient(180deg, #2f3df5, rgba(47,61,245,0));
+}
+@media (max-width: 767px) {
+  .s1-frame { aspect-ratio: 4 / 3; border-radius: 22px; }
+  .s1-box { left: 27%; top: 30%; width: 46%; height: 8%; }
+  /* keep the honest "· index.html" visible; truncate only the long id */
+  .s1-label { font-size: 8.5px; max-width: 84vw; }
+  .s1-label-id { max-width: 26vw; overflow: hidden; text-overflow: ellipsis; }
+  .s1-s2hint { width: 84px; }
+}
+
+/* ---- X-Ray · S2: two views, one file — the file is REVEALED beside the canvas ----
+   --open: canvas covers full frame (inherited from S1) then retracts left, the seam
+   riding its edge, revealing index.html in the right half. --draw: connector. */
+#xray-s2 { --open: 0; --draw: 0; --s3: 0; }
+.s2-diptych {
+  position: relative; width: 100%; aspect-ratio: 16 / 8.5;
+  border-radius: 34px; overflow: hidden; background: var(--color-night);
+  box-shadow: 0 1px 2px rgba(12,13,16,.06), 0 50px 90px -55px rgba(12,13,16,.5);
+}
+.s2-pane { position: absolute; top: 0; bottom: 0; overflow: hidden; }
+.s2-code { left: 50%; right: 0; }
+.s2-canvas { left: 0; width: calc(50% + (1 - var(--open)) * 50%); z-index: 2; }
+.s2-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s2-canvas .s2-img { object-position: 62% 33%; transform: scale(1.16); }   /* close on the <h1> */
+/* The code pane is landscape enough that cover overflows vertically too, so BOTH axes
+   of object-position frame the file: X keeps the .hero { token (with its leading dot),
+   Y 74% drops the window to line 35 so .hero sits mid-frame, not jammed at the edge. */
+.s2-code .s2-img { object-position: 20% 74%; transform: scale(1.5); }
+.s2-seam {
+  position: absolute; top: 0; bottom: 0; width: 2px; z-index: 3;
+  left: calc(50% + (1 - var(--open)) * 50%); transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #2f3df5 12%, #8fb0ff 50%, #2f3df5 88%, transparent);
+  box-shadow: 0 0 8px rgba(47,61,245,.35); opacity: var(--open);
+}
+.s2-connector { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+/* fine inspector instrumentation, not a drawn arrow. non-scaling-stroke keeps the
+   line a true ~1px regardless of the stretched viewBox; nodes are px-true DOM rings. */
+.s2-connector path {
+  fill: none; stroke: #2f3df5; stroke-width: 1.1; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: calc(1 - var(--draw));
+}
+.s2-node {
+  position: absolute; z-index: 4; width: 9px; height: 9px; border-radius: 50%;
+  border: 1.5px solid #2f3df5; background: rgba(47,61,245,.1);
+  transform: translate(-50%, -50%) scale(var(--draw)); opacity: var(--draw); pointer-events: none;
+}
+/* Rings positioned (per pane) on the actual tokens. The connector reads THESE rects,
+   so ring + line move together — nudge one % here and both stay in sync. */
+.s2-node-canvas { left: 70%; top: 40%; }  /* the selected <h1> in the canvas pane */
+.s2-node-code  { left: 21%; top: 86%; }   /* the .hero { token in the code pane */
+.s2-tag {
+  position: absolute; bottom: 12px; z-index: 5; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: .14em; color: #dbe2ff; background: rgba(13,15,20,.72); padding: 3px 8px; border-radius: 6px;
+  opacity: var(--open);
+}
+.s2-tag-l { left: 12px; } .s2-tag-r { right: 12px; }
+@media (max-width: 767px) {
+  /* Vertical editorial sequence: each pane zoomed to ITS evidence, both legible.
+     No horizontal retract (that's a desktop idea); ignore --open here. */
+  .s2-diptych { aspect-ratio: 3 / 4.4; }
+  .s2-pane { left: 0 !important; right: 0 !important; width: 100% !important; }
+  .s2-canvas { top: 0; height: 48%; }
+  .s2-code { top: 52%; bottom: 0; height: auto; }
+  .s2-canvas .s2-img { object-position: 50% 30%; transform: scale(1.55); }   /* the selected <h1> */
+  /* On mobile the pane is landscape, so cover overflows HORIZONTALLY (Y is inert here);
+     transform-origin Y 84% is what drops the zoom onto line 35 (.hero), with :root off-top. */
+  .s2-code .s2-img { object-position: 10% 50%; transform: scale(2.4); transform-origin: 30% 84%; }
+  .s2-seam { left: 6%; right: 6%; top: 50%; bottom: auto; width: auto; height: 2px; transform: none;
+    opacity: 1; background: linear-gradient(90deg, transparent, #2f3df5 50%, transparent); }
+  .s2-connector, .s2-node { display: none; } /* the two zoomed crops + labels carry it on mobile */
+  .s2-tag { opacity: 1; }
+  .s2-tag-l { top: 12px; bottom: auto; left: 12px; }
+  .s2-tag-r { bottom: 12px; right: 12px; }
+}
+
+/* ---- X-Ray · S3: hand it to the agent — TWO real states of the SAME <h1>, NO causal wiring.
+   The only continuous clip records a different element, so we make no causal claim and draw NO
+   connector. --menu: Ask Copilot lights (left). --ctx: Claude's design context is marked (right).
+   --reply: the real panel crop pans down to reveal Claude's reply + bullets. --s4: teaser. */
+#xray-s3 { --menu: 0; --ctx: 0; --reply: 0; --s4: 0; }
+.s3-stage {
+  position: relative; width: 100%; aspect-ratio: 16 / 8.5;
+  border-radius: 34px; overflow: hidden; background: var(--color-night);
+  box-shadow: 0 1px 2px rgba(12,13,16,.06), 0 50px 90px -55px rgba(12,13,16,.5);
+}
+.s3-pane { position: absolute; top: 0; bottom: 0; overflow: hidden; }
+/* Narrow agent pane so the 306px-wide panel crop renders near native (~1.28x ≤ 1.3x), not
+   stretched to fill half the stage. The canvas gets the extra width. */
+.s3-canvas { left: 0; right: 35%; }
+.s3-agent { left: 65%; right: 0; }
+.s3-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.s3-canvas .s3-img { object-position: 52% 46%; transform: scale(1.5); }  /* the canvas, aligned across both stills */
+.s3-img-sel { opacity: 1; }                 /* <h1> selected, no menu (07) */
+.s3-img-menu { opacity: var(--menu); }      /* the menu fades in over it (07a) — no artificial box */
+/* 06-claude-panel.png is pre-cropped to JUST the Claude panel (no editor strip). It's portrait,
+   so cover overflows vertically and object-position-Y pans it: --reply scrolls from the design
+   context (top) down to Claude's reply + bullets (bottom). Real pixels, no DOM rebuild. */
+.s3-agent .s3-img { object-position: 50% calc(var(--reply) * 100%); transform: none; }
+.s3-seam {
+  position: absolute; top: 0; bottom: 0; width: 2px; z-index: 3; left: 65%; transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #2f3df5 12%, #8fb0ff 50%, #2f3df5 88%, transparent);
+  box-shadow: 0 0 8px rgba(47,61,245,.35);
+}
+/* cobalt highlight boxes — inspector emphasis over REAL pixels (no connecting line between panes) */
+.s3-hl {
+  position: absolute; z-index: 5; border: 1.5px solid #2f3df5; border-radius: 7px;
+  background: rgba(47,61,245,.08); box-shadow: 0 0 10px rgba(47,61,245,.18);
+  pointer-events: none;
+}
+/* the [Design context] sub-card (panel top, --reply 0); fades out as the crop pans to the reply.
+   Box maps the native sub-card (306x592 crop: y~58..255) through cover scale 1.281 at reply 0:
+   top 12% .. 55%. Tighter than before so it frames the 3 context bullets only — NOT the greyed
+   "Reviewed…" processing line below them (that isn't design context). */
+.s3-hl-ctx { left: 6%; top: 12%; width: 88%; height: 43%;
+  /* Box is fixed; the card pans up with --reply. Fade fully by reply~0.15 so the inspector
+     frame is gone before the card visibly leaves the region it maps to (no drift-off-card). */
+  opacity: calc(var(--ctx) * clamp(0, (1 - var(--reply) / 0.15), 1)); }
+.s3-tag {
+  position: absolute; bottom: 12px; z-index: 6; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: .14em; color: #dbe2ff; background: rgba(13,15,20,.72); padding: 3px 8px; border-radius: 6px;
+}
+.s3-tag-l { left: 12px; }
+/* Right pane needs no tag: the panel's own "Claude" header and the caption below the stage
+   already identify it, and any in-pane label sits on real reply text (incl. the localhost proof). */
+@media (max-width: 767px) {
+  /* Mobile = a legible vertical sequence: a cropped canvas band stacked above the FULL Claude
+     panel shown at ~native width, so the whole real conversation (design context + reply +
+     bullets) is readable. No fixed aspect box — panes flow and the panel sets its own height. */
+  .s3-stage { aspect-ratio: auto; height: auto; }
+  .s3-pane { position: relative; left: auto; right: auto; top: auto; bottom: auto; }
+  .s3-canvas { height: 300px; }
+  .s3-agent { height: auto; }
+  .s3-agent .s3-img { position: relative; inset: auto; width: 100%; height: auto; transform: none;
+    object-fit: contain; object-position: center top; }
+  .s3-seam { top: 300px; bottom: auto; left: 6%; right: 6%; width: auto; height: 2px; transform: none;
+    background: linear-gradient(90deg, transparent, #2f3df5 50%, transparent); }
+  /* Inspector box would span the whole full-height panel here — drop it; context stays legible. */
+  .s3-hl-ctx { display: none; }
+}
+
+/* ---- X-Ray · S4: "On your machine." — two scenes on ONE stage ----
+   IDE scene: 04a full (cover) — two cobalt inspector boxes (the .s3-hl idiom + an S1-style label) prove the
+   project is local and SERVED FROM LOCALHOST (loopback terminal logs). NEVER box the Claude panel.
+   Canvas scene: the same local preview cropped to JUST the canvas — 04c (desktop) and 04d (phone) are cut
+   to the SAME rect, so the frame is stable and the differing IDE chrome of the two capture sessions is out
+   of frame (no jump). They crossfade (object-fit:contain; the dark pillarbox blends into the night stage);
+   we make NO continuity claim. No video → no decode → start/morph/settle identical going up or down. No
+   WebGL (reserved for S5). Box %s are first-pass from 1920×1032 — px-true retune (s3-hl-ctx precedent). */
+#xray-s4 { --proj: 0; --serve: 0; --zoom: 0; --morph: 0; --s5: 0; }
+.s4-stage {
+  position: relative; width: 100%; aspect-ratio: 1920 / 1032;  /* IDE native ratio (cover, no crop) */
+  border-radius: 34px; overflow: hidden; background: var(--color-night);
+  box-shadow: 0 1px 2px rgba(12,13,16,.06), 0 50px 90px -55px rgba(12,13,16,.5);
+}
+/* IDE scene — 04e full-bleed (clean/bright IDE: project files + loopback terminal, canvas visible).
+   Fades AND zooms toward the canvas center as the canvas crop (04c, same source) takes over → continuous zoom. */
+/* IDE stays OPAQUE (it is just covered by the opaque canvas layer as zoom→1) → the IDE→canvas hand-off never
+   reveals the night bg, so there is no dark dip near the localhost beat. It still zooms toward the canvas. */
+.s4-ide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
+  opacity: 1; transform: scale(calc(1 + var(--zoom) * 0.14)); transform-origin: 56% 44%; }
+/* Canvas scene — both stills cropped to the SAME canvas rect (986×680), shown whole (contain) on an OPAQUE
+   night box so the wipe is clean (no transparent letterbox leaking the layer below); the dark bars blend in. */
+.s4-cv { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: var(--color-night); z-index: 2; }
+/* desktop = the base of the canvas scene; covers the IDE quickly (opaque by zoom 0.5) so the hand-off reads as
+   a zoom-in, not a long double-exposure; resolves in with a slight zoom */
+.s4-cv-desktop { opacity: min(1, calc(var(--zoom) / 0.08)); transform: scale(calc(0.93 + var(--zoom) * 0.07)); }
+/* DIRECTIONAL WIPE (not a crossfade): the phone is revealed by a center-anchored horizontal mask growing
+   outward, opaque and on top. Because the wider desktop headline is eaten from its centre first, two full
+   layouts/headlines are never both visible. No blur. Phone always opaque on top → nothing can flash to black. */
+.s4-cv-phone { z-index: 3; opacity: var(--zoom); will-change: clip-path;
+  clip-path: inset(0 calc((1 - var(--morph)) * 50%) 0 calc((1 - var(--morph)) * 50%)); }
+/* cobalt inspector boxes — the .s3-hl rule, each with an S1-style mono label. ONLY two, one focus per beat. */
+.s4-hl {
+  position: absolute; z-index: 5; border: 1.5px solid #2f3df5; border-radius: 7px;
+  background: rgba(47,61,245,.08); box-shadow: 0 0 10px rgba(47,61,245,.18); pointer-events: none;
+}
+.s4-hl-label {
+  position: absolute; left: -1px; top: -26px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; color: #dbe2ff;
+  background: rgba(13,15,20,.82); padding: 3px 8px; border-radius: 6px;
+}
+.s4-hl-proj  { left: 3.3%; top: 7%;    width: 15.5%; height: 9%;  opacity: calc(var(--proj)  * (1 - var(--serve))); } /* Code explorer: CODECANVAS-DEMO + index.html/pricing.html */
+.s4-hl-serve { left: 19%;  top: 84.5%; width: 23%;   height: 13%; opacity: calc(var(--serve) * (1 - min(1, calc(var(--zoom) / 0.06)))); } /* loopback terminal logs; gone before the canvas covers */
+/* mono tag — localhost proof; cites ONLY 04a's own terminal pixels (no :5500). Fades when we leave the IDE. */
+.s4-tag {
+  position: absolute; bottom: 12px; left: 12px; z-index: 6; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .14em; color: #dbe2ff; background: rgba(13,15,20,.72);
+  padding: 3px 8px; border-radius: 6px; opacity: calc(var(--serve) * (1 - min(1, calc(var(--zoom) / 0.06))));
+}
+/* reduced-motion DESKTOP static full state: show the IDE (04e) — it actually holds the loopback terminal
+   (::1 → 200), the project files AND the canvas, so the local proof stays in frame (the bare phone crop has
+   none). The terminal box + tag stay on. Mobile gets its own vertical sequence below (@media wins). */
+.s4-stage[data-static] .s4-ide { opacity: 1; }
+.s4-stage[data-static] .s4-cv-desktop,
+.s4-stage[data-static] .s4-cv-phone { opacity: 0; }
+.s4-stage[data-static] .s4-hl-proj { opacity: 0; }
+.s4-stage[data-static] .s4-hl-serve,
+.s4-stage[data-static] .s4-tag { opacity: 1; }
+
+@media (max-width: 767px) {
+  /* Mobile = a legible vertical sequence (no pin/scrub), like S2/S3: the SAME local preview, desktop then
+     phone, each at full width. The wide IDE shot is illegible at 375px, so it's dropped — the headline +
+     body copy carry the local-first proof (localhost, loopback ::1, the files). */
+  .s4-stage { aspect-ratio: auto; height: auto; display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+  .s4-ide, .s4-hl, .s4-tag { display: none; }
+  .s4-cv {
+    position: static; width: 100%; height: auto; border-radius: 16px;
+    opacity: 1 !important; clip-path: none !important; transform: none !important;
+  }
+  .s4-cv-desktop { aspect-ratio: 986 / 680; }   /* reserve the box (no CLS) */
+  /* portrait box + cover so the centred phone fills the column legibly (04d is a landscape canvas crop) */
+  .s4-cv-phone { aspect-ratio: 10 / 14; object-fit: cover; object-position: center; }
+}
+
+/* ---- X-Ray · S5: the brand resolve — the CodeCanvas mark, structure ⇒ surface (WebGL) ----
+   The arc resolves OUT of the dark technical stages into a clean PAPER stage so the satin-metal mark
+   reads as the brand statement and matches the baked poster. Poster = the settled end state of the
+   reveal, so reduced-motion / mobile / no-WebGL clients see the payoff. Uses the FULL-mesh
+   logo-hero.glb (the 49k simplified logo-opt.glb was rejected for bevel fanning — see handoff). */
+#xray-s5 { --rev: 0; }
+.s5-stage {
+  position: relative; width: 100%; aspect-ratio: 1180 / 740;
+  border-radius: 34px; overflow: hidden; background: var(--color-paper);
+  box-shadow: inset 0 0 0 1px var(--color-line), 0 50px 90px -60px rgba(12,13,16,.35);
+}
+/* poster + canvas both centred, contain; crossfade poster→canvas once GL has drawn its first frame */
+.s5-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transition: opacity .6s ease; }
+.s5-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 2; transition: opacity .6s ease; }
+/* cobalt scan band sweeping bottom→top with the reveal — the S1 scanline grammar, in 3D. A soft glow
+   with a brighter hairline core for legibility. Peaks mid-sweep, gone at rest (keeps the settled mark clean). */
+.s5-scan {
+  position: absolute; left: 6%; right: 6%; height: 17%; pointer-events: none; z-index: 4;
+  top: calc((1 - var(--rev)) * 100%); transform: translateY(-50%);
+  background: linear-gradient(to bottom, transparent, rgba(58,91,255,.26), transparent);
+  opacity: calc(var(--rev) * (1 - var(--rev)) * 4);
+}
+.s5-scan::after {   /* brighter hairline core — reads as a defined scan line, not just haze */
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; transform: translateY(-50%);
+  background: linear-gradient(to right, transparent, rgba(91,124,255,.85) 22%, rgba(91,124,255,.85) 78%, transparent);
+  box-shadow: 0 0 8px rgba(58,91,255,.5);
+}
+.s5-tag {
+  position: absolute; bottom: 12px; left: 12px; z-index: 6; font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: .14em; color: var(--color-ink-2);
+  background: rgba(246,246,243,.7); padding: 3px 8px; border-radius: 6px; transition: opacity .6s ease;
+}
+/* static fallback: poster only (no live canvas, no scan, no tag) */
+.s5-stage[data-static] .s5-canvas,
+.s5-stage[data-static] .s5-scan,
+.s5-stage[data-static] .s5-tag { display: none; }
+
+@media (max-width: 767px) {
+  .s5-stage { aspect-ratio: 1 / 1; }   /* the poster is square — give it a square box on mobile */
 }

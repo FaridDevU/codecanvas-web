@@ -55,6 +55,15 @@ export default function VideoPanel() {
   const [shown, setShown] = useState(false)
   const [playHover, setPlayHover] = useState(false)
   const [reelOpen, setReelOpen] = useState(false)
+  // Only mount the phone fallback <video> on small screens, so desktop never
+  // downloads/decodes overview.mp4 for a hidden element (audit fix).
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync(); mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
   // Custom player state (lusion-style fullscreen reel — no native controls).
   const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -163,7 +172,11 @@ export default function VideoPanel() {
           // ONLY the play button is interactive, and only when the reel is settled —
           // so the hover fill/marquee fire over the button, not the whole video.
           const btn = playBtn.current
-          if (btn) btn.style.pointerEvents = settle > 0.85 ? 'auto' : 'none'
+          if (btn) {
+            const on = settle > 0.85
+            btn.style.pointerEvents = on ? 'auto' : 'none'
+            btn.tabIndex = on ? 0 : -1 // not keyboard-focusable while the overlay is invisible
+          }
         },
       })
     })
@@ -196,7 +209,7 @@ export default function VideoPanel() {
               actual source files. No throwaway prototypes, no translation gap between
               what you see and what ships.
             </p>
-            <button className="mt-7 inline-flex h-11 items-center gap-2 rounded-full border border-line bg-white px-5 text-xs font-semibold uppercase tracking-[0.18em] text-ink transition-colors hover:border-ink">
+            <button type="button" onClick={openReel} className="mt-7 inline-flex h-11 items-center gap-2 rounded-full border border-line bg-white px-5 text-xs font-semibold uppercase tracking-[0.18em] text-ink transition-colors hover:border-ink">
               <span className="dot" style={{ background: 'var(--color-accent)' }} />
               Watch overview
             </button>
@@ -267,12 +280,15 @@ export default function VideoPanel() {
           </div>
         </div>
 
-        {/* Mobile fallback: a plain video (no WebGL on phones). Tap → full reel + sound. */}
-        <button onClick={openReel} className="mt-10 block w-full overflow-hidden rounded-2xl shadow-[0_30px_80px_-40px_rgba(20,30,90,.5)] md:hidden">
-          <video className="aspect-video w-full object-cover" autoPlay muted loop playsInline>
-            <source src={VIDEO} type="video/mp4" />
-          </video>
-        </button>
+        {/* Mobile fallback: a plain video (no WebGL on phones). Tap → full reel + sound.
+            Only mounted on small screens so desktop never fetches/decodes it. */}
+        {isMobile && (
+          <button onClick={openReel} aria-label="Play overview reel" className="mt-10 block w-full overflow-hidden rounded-2xl shadow-[0_30px_80px_-40px_rgba(20,30,90,.5)]">
+            <video className="aspect-video w-full object-cover" autoPlay muted loop playsInline preload="none">
+              <source src={VIDEO} type="video/mp4" />
+            </video>
+          </button>
+        )}
       </section>
 
       {/* Full reel — custom fullscreen player (lusion). No native controls: PLAY left,
@@ -287,6 +303,7 @@ export default function VideoPanel() {
           ref={fullVideo}
           src={VIDEO}
           playsInline
+          preload="none"
           onClick={closeReel}
           onMouseMove={(e) => {
             cursorTarget.current = { x: e.clientX, y: e.clientY }
